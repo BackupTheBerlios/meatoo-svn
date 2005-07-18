@@ -1,0 +1,40 @@
+
+1) Get the source:
+
+Check out the latest svn sources:
+
+svn checkout svn://svn.berlios.de/meatoo/trunk
+
+Or if you have been added to the project:
+
+svn checkout \
+svn+ssh://developername@svn.berlios.de/svnroot/repos/meatoo/trunk
+cd trunk
+
+2) Configure:
+
+Copy and edit the example config files:
+cp meatoo.conf.example meatoo.conf
+cp cherrypy.conf.example cherrypy.conf
+
+The cherrypy.conf should be fine as is.
+Edit meatoo.conf and enter your mysql username/password.
+Create a mysql database named "meatoo".
+The tables will be created automatically.
+
+Setup misc data directories:
+mkdir /usr/share/meatoo
+cp static/* /usr/share/meatoo/
+mkdir /var/tmp/meatoo
+
+3) Start server:
+
+./cherry_meatoo.py
+
+4) Populate database:
+
+This is what is run every 12 hours via cron at approx 12 UTC:
+me2dload -d -t
+me2sql -u -r
+
+
