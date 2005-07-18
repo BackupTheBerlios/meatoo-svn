@@ -1,16 +1,28 @@
 
+from Cheetah.Template import Template
+import cherrypy
+
+
 def header():
     """ Yields header html"""
-    return """<html>
-    <head>
-      <title>Meatoo: Freshmeat-Gentoo Updates</title>
+    logged = False
+    if cherrypy.session.get('userid', None):
+        logged = True
+    template = Template("""
+    <html><head><title>Meatoo: Freshmeat-Gentoo Updates</title>
       <link href="/meatoo/static/stylin.css" media="screen" rel="Stylesheet" type="text/css" />
       <link href="http://gentooexperimental.org/meatoo/static/meatoo.xml" rel="alternate" type="application/rss+xml" title="Meatoo Freshmeat-Gentoo RSS Feed" />
     </head>
     <body>
 
     <h1><a href="/meatoo">Meatoo</a></h1>
-    <br>
+    <br><br>
+    #if $logged:
+        <a href="/meatoo/logout">Logout</a>
+    #else
+        <a href="/meatoo/login">Login</a>
+    #end if
+    <br><br>
     Meatoo is a database of the latest Freshmeat releases having name matches
     in Gentoo's portage.<br>
     The database is updated twice a day at approximately 12am and 12pm UTC<br>
@@ -44,7 +56,9 @@ def header():
     </tr>
     </table> 
     <br>
-    """
+    """, [locals(), globals()])
+    return template.respond()
+
     
 
 

@@ -62,10 +62,8 @@ class MyServer(cptools.PositionalParametersAware):
         <a class="nav" href="http://freshmeat.net/redir/$pkg.packageName/$pkg.urlChangelog/url_changelog/" title="View ChangeLog">
         <img border=0 src="/meatoo/static/changelog.gif" alt="changelog"></a>
 
-        #if $login 
-            <a href="/meatoo/edit?id=$pkg.id">
-            <img border=0 src="/meatoo/static/edit.png" alt="Edit"></a>
-        #end if
+        <a href="/meatoo/ignore/$pkg.id">
+        <img border=0 src="/meatoo/static/edit.png" alt="Ignore"></a>
 
         </td></tr><tr><td><br>
         $pkg.portageDesc
@@ -97,8 +95,8 @@ class MyServer(cptools.PositionalParametersAware):
         ''', [locals(), globals()])
         return template.respond()
 
-    def edit_action(self, pn, ver):
-        """Process edit form"""
+    def ignore_action(self, pn, ver):
+        """Process ignore form"""
         try:
             pkg = Packages.select(AND(Packages.q.packageName == pn, \
                                   Packages.q.latestReleaseVersion == ver))
@@ -110,20 +108,23 @@ class MyServer(cptools.PositionalParametersAware):
         yield pn + "-" +  ver + " ignored.<br><br>"
         yield "Go <a href='/meatoo'>back</a>"
         yield footer()
-    edit_action.exposed = True
+    ignore_action.exposed = True
 
-    def edit(self, id):
-        """Edit form"""
-        yield self.edit_form(id)
+    @cherrypy.expose
+    @needsLogin
+    def ignore(self, id, *args, **kwargs):
+        """Ignore particular version of pkg"""
+        yield header()
+        yield self.ignore_form(id)
         yield footer()
-    edit.exposed = True
 
-    def edit_form(self, id):
+    def ignore_form(self, id):
+        """Form for ignoreing pkgs"""
         pkg = Packages.get(id)
         template = Template('''
-            <form method="get" action="/meatoo/edit_action/">
+            <form method="get" action="/meatoo/ignore_action/">
             <div>
-            <h3>Editting $pkg.packageName</h3>
+            <h3>Ignore $pkg.packageName</h3>
             <br>This will ignore this particular freshmeat release version, not the entire pacakge.</b><br><br>
             Freshmeat Release Date: $pkg.latestReleaseDate<br><br>
             <a href="http://packages.gentoo.org/search/?sstring=%5E$pkg.packageName%24">
@@ -138,12 +139,10 @@ class MyServer(cptools.PositionalParametersAware):
         ''', [locals(), globals()])
         return template.respond()
 
- 
     def signup(self):
         """Return search results"""
         yield self.signup_section()
         yield footer()
-
     signup.exposed = True
 
     def signup_section(self):
@@ -204,7 +203,7 @@ class MyServer(cptools.PositionalParametersAware):
         yield footer()
 
     def search_results(self, srch, type):
-
+        """Return search results page"""
         if self.config.get("web", "showall") == "False":
             if type == 'herd':
                 packages = Packages.select( AND ( LIKE(Packages.q.maintainerName, '%' +  srch + '%'), Packages.q.fmNewer==1 ) )
@@ -236,6 +235,9 @@ class MyServer(cptools.PositionalParametersAware):
                 <tr class="alt">
                 <td><a href="http://packages.gentoo.org/search/?sstring=%5E$pkg.packageName%24">
                 $pkg.portageCategory/$pkg.packageName</a>
+                <a class="nav" href="/meatoo/ignore/$pkg.id" title="Ignore this version of this package.">
+                <img border=0 src="/meatoo/static/edit.png" alt="Ignore"></a>
+
                 <a class="nav" href="/meatoo/add_known/$pkg.fmName" title="Edit Portage name">
                 <img border=0 src="/meatoo/static/edit.gif"></a>
                 <a class="nav" href="$pkg.urlHomepage" title="Project Homepage">
@@ -331,6 +333,23 @@ class MyServer(cptools.PositionalParametersAware):
         yield footer()
         
     known_submit.exposed = True
+
+    @cherrypy.expose
+    @needsLogin
+    def login(self, *args, **kwargs):
+        """Show form for editing known matches"""
+        yield header()
+        yield "You are logged in."
+        yield footer()
+
+    def logout(self):
+        yield header()
+        try:
+            del cherrypy.session['userid']
+            yield "<br><b>You are logged out.</b><br>"
+        except:
+            yield "<br><b>You are not logged out. This is a known bug.</b><br>"
+        yield footer()
 
     def index(self, verbose = None, login = None):
         """Main index.html page"""

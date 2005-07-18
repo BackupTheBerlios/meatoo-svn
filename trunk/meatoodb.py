@@ -71,8 +71,7 @@ class Ignores(SQLObject):
 
     _connection = conn
 
-    _columns = [StringCol('portageCategory', length=64, notNull=1),
-                StringCol('packageName', length=64, notNull=1),
+    _columns = [StringCol('packageName', length=64, notNull=1),
                 StringCol('latestReleaseVersion', length=64, notNull=1)
                ]
 
