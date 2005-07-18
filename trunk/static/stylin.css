@@ -1,0 +1,157 @@
+
+a:hover, a.nav:hover { color: #4E591C; }
+body
+{
+	font-family:Verdana, Arial, Helvetica, sans-serif;
+	font-size:80%;
+	background-color:#eee;
+	background-repeat:repeat-x;
+	padding:10px 12px;
+}
+p
+{
+	margin-bottom: 1em;
+}
+h1
+{
+	font-size:140%;
+	font-weight:bold;
+}
+h2
+{
+	font-size:140%;
+	font-weight:bold;
+}
+body>h1
+{
+	margin-top:0;
+}
+table 
+{
+	width: 100%;
+	background-color:#eee;
+	border-bottom: 1px solid #D9D9D9;
+	border-right: 1px solid #D9D9D9;
+	border-top: 1px solid #c4c4c4;
+}
+th
+{
+	font-weight:bold;
+	color: #000;
+	text-align:left;
+	vertical-align:bottom;
+	padding:3px 5px;
+	background-color:#eee;
+	border-left: 1px solid #c4c4c4;
+}
+td 
+{
+	text-align:left;
+	vertical-align:top;
+	padding:3px 5px;
+	background-color:#fff;
+	border-left: 1px solid #D9D9D9;
+}
+tr.alt td
+{
+	background-color:#edf3fe;
+	border-left: 1px solid #D9D9D9;
+}
+label
+{
+	display:block;
+	width: 1em;
+	font-weight:bold;
+	margin-top:1em;
+}
+div#objectform
+{
+	background-color: #fff;
+	width: 28em;
+	padding: 0 15px;
+	border: 1px solid #D9D9D9;
+}
+div.dateitem
+{
+	float:left;
+	vertical-align:bottom;
+	margin-right:10px;
+}
+div.dateitem label.hidden
+{
+	color:#fff;
+}
+div.datefieldset
+{
+	padding:0;
+	height:4em;
+}
+.auraltext
+{
+   position: absolute;
+   font-size: 0;
+   left: -1000px;
+}
+textarea, input.field
+{
+	width: 99%;
+	font-family:Verdana, Arial, Helvetica, sans-serif;
+	font-size:100%;
+}
+code {
+	background-color: #eaeaea;
+	padding: 6px 10px;
+	border: 1px solid #e11;
+	font-size: 110%;
+}
+a.togglelink
+{
+	margin: 20px 0 10px 0;
+}
+
+td.nav_cell div{
+	display: none;
+	position: absolute;
+	border: 1px solid black;
+	width: 36em;
+	background-color: #f0f5ff;
+	font-size: .9em;
+	padding: .8em;
+	margin-left: -38em;
+	margin-top: -4.8em;
+	opacity: 0.85;
+}
+td.nav_cell:hover div{
+	display: block;
+}
+
+td.nav_cell div:before{
+	content: "Freshmeat pkg info";
+	display: block;
+	border-bottom: 1px solid #999999;
+	padding-left: 1em;
+	font-weight: bold;
+	margin-bottom: .5em;
+	font-family: georgia, sans-serif;
+	font-style: italic;
+	text-align: right;
+}
+td.nav_cell div span{
+	display: block;
+	font-weight: bold;
+}
+td.nav_cell div p{
+	margin: 0;
+	padding: 0;
+	padding-left: 2em;
+	font-size: 1em;
+}
+td.nav_cell div:hover{
+	display: none;
+}
+
+tr.alt td.hilite
+{
+	background-color:red;
+}
+

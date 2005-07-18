@@ -1,0 +1,58 @@
+
+<a href="/meatoo/">Back to Meatoo</a>
+<br>
+<br>
+Meatoo is a work in progress:<br><br>
+<b>Todo:</b>
+<ul>
+<li>I'm finishing up an interface so you can map names that don't quite match.
+<li>Versions with odd numbering schemes show as false positives. I'm working on catching common mismatches like 1.0_alpha1 and 1.0-alpha1
+
+<h1>Frequently Asked Questions about Meatoo</h1>
+<ol>
+<li><b>Q:</b> Package "foo" on Gentoo isn't the same software as package "foo" on Freshmeat, why isn't it mapped to the correct name?
+<br>
+<br>
+<b>A:</b> Meatoo maps Gentoo portage package names against Freshmeat package names automatically. I'm working on a registration system so people can sign up and correct name mappings.
+<br>
+<br>
+<li><b>Q:</b> Can I get package release info via mail?
+<br>
+<br>
+<b>A:</b> Not at the moment. There is an RSS feed available for daily updates:<br>
+<br>
+ http://gentooexperimental.org/static/meatoo.xml
+ <br><br>
+ Or by herd or maintainer email address:<br><br>
+ http://gentooexperimental.org/meatoo/rss?herd=games<br>
+ http://gentooexperimental.org/meatoo/rss?herd=whoever@gentoo.org
+
+ <br><br>
+<b>Note:</b> Freshmeat only updates their RDF database every 12 hours, so please don't set your client to read them at a lower interval.<br><br>
+There is also a command line <a href="http://dev.gentoo.org/~pythonhead/scripts/meatoo-0.0.5">tool</a> being worked on. 
+<br>
+<br>
+<li><b>Q:</b> I love to file bug reports. Can I start filling up bugs.gentoo.org with version bump bugs?
+<br>
+<br>
+<b>A:</b> Please don't. A Gentoo developer may already be testing a package just released. If its been a reasonable amount of time, feel free to open a bug report requesting a new version.
+</ol>
+
+<br><br>
+<br><br>
+<b>Miscellaneous:</b><br><br>
+The meatoo database is populated with a Python script via cron once a day using 
+ <a href="http://effbot.org/zone/celementtree.htm">celementtree</a> to parse the ~100 meg Freshmeat RDF file and <a href="http://sqlobject.org">sqlobject</a> to fill up a mysql database. The Meatoo
+website uses <a href="http://cherrypy.org">CherryPy</a> and <a href="http://cheetahtemplate.org">Cheetah</a>.
+<br><br>
+<br><br>
+<table>
+<tr>
+<td><a href="http://cherrypy.org"><img alt ="cherrypy" border=0 src="/meatoo/static/cherryPyLogo.gif"</a></td>
+<td valign=bottom><a href="http://freshmeat.net"><img border=0 src="/meatoo/static/link_button_3.gif"</a></td>
+<td valign=bottom><a href="http://sqlobject.org"><img border=0 src="/meatoo/static/sqlobject-700.png"</a></td>
+</table>
+<br>
+<a href="/meatoo">Back to Meatoo</a>
+
+
