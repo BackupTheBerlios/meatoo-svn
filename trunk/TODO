@@ -1,0 +1,33 @@
+
+TODO:
+
+Add proper ChangeLog after we get svn working.
+
+Roadmap:
+
+* Authorization system for gentoo developers.
+* Subscription service to mail new pkg info by herd/maintainer.
+
+
+RL:
+- stu's blog functionality
+- per-pkg regexps to compare versions
+- check per-pkg URLs (homepages) for version numbers
+
+---------------------------------------------------------------
+
+me2dload.py
+    Check filesize on fm's website and don't download
+    if same as last download. We need to keep the filesize
+    somewhere because the bz2 file is uncompressed.
+    (Can read http header with urrlib)
+
+    Add verbose option to help debugging.
+    Theres a lot of commented code already in place.
+
+
+me2sql.py
+    Add a verbose option to help debugging.
+    Theres a lot of commented code already in place.
+
+

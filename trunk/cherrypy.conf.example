@@ -1,0 +1,12 @@
+[global]
+server.socketPort = 8080
+server.threadPool = 10
+server.socketQueueSize = 5
+server.logFile = "/var/log/meatoo.log"
+
+sessionFilter.on = True
+sessionFilter.storageType = "ram"
+
+[/static]
+staticFilter.on = True
+staticFilter.dir = "/usr/share/meatoo"

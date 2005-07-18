@@ -1,0 +1,10 @@
+[web]
+showall = True
+
+[sqlobject]
+dbname = meatoo
+host = localhost
+username =
+password =
+database = mysql
+filename = /path/to/sqlite/db/file
