@@ -1,33 +1,48 @@
 
 TODO:
 
-Add proper ChangeLog after we get svn working.
-
-Roadmap:
-
-* Authorization system for gentoo developers.
-* Subscription service to mail new pkg info by herd/maintainer.
+(Ok, guess we could file bug reports on these.)
 
 
-RL:
-- stu's blog functionality
-- per-pkg regexps to compare versions
-- check per-pkg URLs (homepages) for version numbers
+General:
 
----------------------------------------------------------------
+* Add ChangeLog
+* Create svn ebuild for gentooexperimental (Rob)
 
-me2dload.py
-    Check filesize on fm's website and don't download
-    if same as last download. We need to keep the filesize
-    somewhere because the bz2 file is uncompressed.
-    (Can read http header with urrlib)
+Website:
 
-    Add verbose option to help debugging.
-    Theres a lot of commented code already in place.
+* Authorization system for gentoo developers. (Rob)
+* Subscription service to mail new pkg info by herd/maintainer. (Rob)
+* Add username to table when someone edits/ignores a package. (Rob)
+* stu's blog functionality. (RL)
+* per-pkg regexps to compare versions.(RL)
+* check per-pkg URLs (homepages) for version numbers. (RL)
+* Add widget to filter all pkgs or just ones with newer fm vers
+* Create a better header with a logo.
 
 
-me2sql.py
-    Add a verbose option to help debugging.
-    Theres a lot of commented code already in place.
+me2dload.py:
 
+*  Check filesize on fm's website and don't download
+   if same size as last download. We need to keep the filesize
+   somewhere because the bz2 file is uncompressed.
+   (Can read http header with urrlib) (Rob)
+
+* Add verbose option to help debugging. (Rob)
+
+me2sql.py:
+
+* Add a verbose option to help debugging. (Rob)
+
+meatoo.py (Command-line client):
+
+* Put feature back in to show menu where you can use 'bumper'
+  to try to automagically bump package (see first version).
+  (Rob)
+
+* Modify -t option to allow you to show n number of days past.
+  (Rob)
+
+* Write API docs for XML-RPC interface so people can write
+  crazy clients. (Rob)
 
