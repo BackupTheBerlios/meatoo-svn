@@ -13,6 +13,8 @@ Contributor: Renat Lumpau
 
 import cherrypy
 
+import accounts
+
 
 def needsLogin(fn):
     '''Login decorator: if the user is not logged in, send up a login
@@ -50,25 +52,23 @@ def needsLogin(fn):
 
 
 def getUserId(username, password):
-    '''Simple function to look up a user id from username and password.
-    Naturally, this would be stored in a database rather than
-    hardcoded, and the password would be stored in a hashed format
-    rather than in cleartext.
-
-    Returns the userid on success, or None on failure.
-    '''
+    '''Return True if good password'''
     
-    accounts = {('pythonhead', 'foo'): 'Rob Cakebread',
-                ('rl03', 'foo'): 'Renat Lumpau'}
-
-    return accounts.get((username,password), None)
-
+    try:
+        db_pswd = accounts.get_user_passwd(username)
+    except:
+        return None
+    if db_pswd == password:
+        return True
+    else:
+        return None
 
 def loginPage(targetPage, message=None):
     '''Return a login "pagelet" that replaces the regular content if
     the user is not logged in.'''
     result = []
     result.append('<h1>Meatoo Login</h1>')
+    result.append('<br><a href="/meatoo/signup">New account</a><br><br>')
     if message is not None:
         result.append('<p>%s</p>' % message)
     result.append('<form action=%s method=post>' % targetPage)

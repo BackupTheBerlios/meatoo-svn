@@ -8,8 +8,8 @@ import cherrypy
 from cherrypy.lib import cptools
 from cherrypy.lib import httptools
 from Cheetah.Template import Template
-import pgen
 
+import accounts
 from sections import *
 from meatoodb import *
 from auth import *
@@ -33,10 +33,6 @@ class MyServer(cptools.PositionalParametersAware):
             week.append("%s-%02d-%02d" % (now[0], now[1], now[2]))
             i += 1
         return week
-
-    def get_iconbar(self, pkg):
-        """Returns html for common edit/ignore/homepage etc icons"""
-
 
     def body(self, verbose, login):
         """Yields body html"""
@@ -160,6 +156,7 @@ class MyServer(cptools.PositionalParametersAware):
 
     def signup(self):
         """Return search results"""
+        yield header()
         yield self.signup_section()
         yield footer()
     signup.exposed = True
@@ -186,34 +183,24 @@ class MyServer(cptools.PositionalParametersAware):
         if email.split("@")[1] != "gentoo.org":
             return "Only official Gentoo developers may register."
 
+        username = email.split("@")[0] 
+        password = self.get_password()
+        if accounts.get_user_passwd(username):
+            return "You already have an account."
         mail = '''Date: %s\n''' % datetime.datetime.now()
         mail += '''To: <%s>\n''' % email
         mail += '''From: "Meatoo Registration" <gentooexp@gmail.com>\n'''
         mail += '''Subject: Meatoo is ready for you.\n\n'''
         mail += '''You can now login to Meatoo and add, delete or modify entries.\n\n'''
-        mail += '''Your password is: %s\n''' % self.get_password()
+        mail += '''Your password is: %s\n''' % password
         tfname = tempfile.mktemp()
         tempFile = open(tfname, "w")
         tempFile.write(mail)
         tempFile.close()
-        username = email.split("@")[0] 
-        in_pfile = open(".cppassword", "r")
-        pfile = in_pfile.read()
-        pfile += "%s:%s\n" % (username, password)
-        in_pfile.close()
-        out_pfile = open(".cppassword", "w")
-        out_pfile.write(pfile)
-        os.system('/usr/bin/nbsmtp < %s' % tfname)
-        try:
-            os.unlink(tfname)
-        except:
-            pass
+        accounts.add_user(username, password)
+        os.system('/usr/bin/nbsmtp < %s &' % tfname)
         return """Your password has been emailed."""
     signup_send.exposed = True
-
-    def get_password(self):
-        """Return random password"""
-        return pgen.Pgenerate().password
 
     def search(self,srch = "", type = ""):
         """Return search results"""
