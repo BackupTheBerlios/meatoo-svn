@@ -6,6 +6,7 @@ import ConfigParser
 
 import cherrypy
 from cherrypy.lib import cptools
+from cherrypy.lib import httptools
 from Cheetah.Template import Template
 import pgen
 
@@ -33,6 +34,10 @@ class MyServer(cptools.PositionalParametersAware):
             i += 1
         return week
 
+    def get_iconbar(self, pkg):
+        """Returns html for common edit/ignore/homepage etc icons"""
+
+
     def body(self, verbose, login):
         """Yields body html"""
         print cherrypy.request.headerMap
@@ -59,11 +64,16 @@ class MyServer(cptools.PositionalParametersAware):
         $pkg.portageCategory/$pkg.packageName-$pkg.portageVersion</a> [
         <a class="nav" href="http://freshmeat.net/projects/$pkg.packageName/" title="Freshmeat Latest Release">$pkg.latestReleaseVersion</a> ]</b>
         $pkg.latestReleaseDate 
+
+        <a class="nav" href="/meatoo/ignore/$pkg.id" title="Ignore this version of this package.">
+        <img border=0 src="/meatoo/static/edit.png" alt="Ignore"></a>
+        <a class="nav" href="/meatoo/add_known/$pkg.fmName" title="Edit Portage name">
+        <img border=0 src="/meatoo/static/edit.gif"></a>
+        <a class="nav" href="$pkg.urlHomepage" title="Project Homepage">
+        <img border=0 src="/meatoo/static/home.png"></a>
+
         <a class="nav" href="http://freshmeat.net/redir/$pkg.packageName/$pkg.urlChangelog/url_changelog/" title="View ChangeLog">
         <img border=0 src="/meatoo/static/changelog.gif" alt="changelog"></a>
-
-        <a href="/meatoo/ignore/$pkg.id">
-        <img border=0 src="/meatoo/static/edit.png" alt="Ignore"></a>
 
         </td></tr><tr><td><br>
         $pkg.portageDesc
@@ -86,6 +96,15 @@ class MyServer(cptools.PositionalParametersAware):
                 <a href="http://packages.gentoo.org/search/?sstring=%5E$pkg.packageName%24">
                 $pkg.portageCategory/$pkg.packageName-$pkg.portageVersion</a> [
                 <a class="nav" href="http://freshmeat.net/projects/$pkg.packageName/" title="Freshmeat Latest Release">$pkg.latestReleaseVersion</a> ]
+        <a class="nav" href="/meatoo/ignore/$pkg.id" title="Ignore this version of this package.">
+        <img border=0 src="/meatoo/static/edit.png" alt="Ignore"></a>
+        <a class="nav" href="/meatoo/add_known/$pkg.fmName" title="Edit Portage name">
+        <img border=0 src="/meatoo/static/edit.gif"></a>
+        <a class="nav" href="$pkg.urlHomepage" title="Project Homepage">
+        <img border=0 src="/meatoo/static/home.png"></a>
+
+        <a class="nav" href="http://freshmeat.net/redir/$pkg.packageName/$pkg.urlChangelog/url_changelog/" title="View ChangeLog">
+        <img border=0 src="/meatoo/static/changelog.gif" alt="changelog"></a>
                 </td></tr>
             #end if
         #end for
@@ -338,9 +357,9 @@ class MyServer(cptools.PositionalParametersAware):
     @needsLogin
     def login(self, *args, **kwargs):
         """Show form for editing known matches"""
-        yield header()
-        yield "You are logged in."
-        yield footer()
+        #print "DEBUG", cherrypy.request.headerMap.get('Referer','/')
+        #FIXME: We should send them back to the page they were:
+        httptools.redirect("/")
 
     def logout(self):
         yield header()
@@ -356,7 +375,6 @@ class MyServer(cptools.PositionalParametersAware):
         yield header()
         yield self.body(verbose, login)
         yield footer()
-
     index.exposed = True
 
     def rss(self, herd = ""):
