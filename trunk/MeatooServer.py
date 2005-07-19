@@ -251,7 +251,7 @@ class MyServer(cptools.PositionalParametersAware):
                 <img border=0 src="/meatoo/static/edit.gif"></a>
                 <a class="nav" href="$pkg.urlHomepage" title="Project Homepage">
                 <img border=0 src="/meatoo/static/home.png"></a></td>
-                #if pkg.portageVersion < $pkg.latestReleaseVersion
+                #if pkg.fmNewer
                     <td class="hilite">$pkg.portageVersion</td>
                 #else
                     <td>$pkg.portageVersion</td>
