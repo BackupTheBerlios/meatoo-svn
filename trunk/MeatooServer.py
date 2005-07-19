@@ -187,7 +187,7 @@ class MyServer(cptools.PositionalParametersAware):
             return "Only official Gentoo developers may register."
 
         username = email.split("@")[0] 
-        password = self.get_password()
+        password = accounts.get_password()
         if accounts.get_user_passwd(username):
             return "You already have an account."
         mail = '''Date: %s\n''' % datetime.datetime.now()
