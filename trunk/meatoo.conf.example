@@ -1,6 +1,3 @@
-[web]
-showall = True
-
 [sqlobject]
 dbname = meatoo
 host = localhost

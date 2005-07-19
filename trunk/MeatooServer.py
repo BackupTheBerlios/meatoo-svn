@@ -205,15 +205,16 @@ class MyServer(cptools.PositionalParametersAware):
         return """Your password has been emailed."""
     signup_send.exposed = True
 
-    def search(self,srch = "", type = ""):
+    def search(self, length = "short", srch = "", type = ""):
         """Return search results"""
         yield header()
-        yield self.search_results(srch, type)
+        yield self.search_results(length, srch, type)
         yield footer()
 
-    def search_results(self, srch, type):
-        """Return search results page"""
-        if self.config.get("web", "showall") == "False":
+    def search_results(self, length, srch, type):
+        """Return search results page. length refers to verbosity. 
+        'short' means show only new packages, 'long' means show all"""
+        if length == "short":
             if type == 'herd':
                 packages = Packages.select( AND ( LIKE(Packages.q.maintainerName, '%' +  srch + '%'), Packages.q.fmNewer==1 ) )
             elif type == 'pn':
@@ -221,8 +222,8 @@ class MyServer(cptools.PositionalParametersAware):
             elif type == "cat":
                 packages = Packages.select( AND ( LIKE(Packages.q.portageCategory, '%' + srch + '%'), Packages.q.fmNewer==1) )
             else:
-                return "<b>Nothing found for:</b> %s" % srch
-        else: # showall = True
+                yield "<b>Nothing found for:</b> %s" % srch
+        elif length == "long":
             if type == 'herd':
                 packages = Packages.select(LIKE(Packages.q.maintainerName, '%' +  srch + '%') )
             elif type == 'pn':
@@ -230,13 +231,16 @@ class MyServer(cptools.PositionalParametersAware):
             elif type == "cat":
                 packages = Packages.select(LIKE(Packages.q.portageCategory, '%' + srch + '%'))
             else:
-                return "<b>Nothing found for:</b> %s" % srch
-
+                yield "<b>Nothing found for:</b> %s" % srch
+        else: # something weird
+            yield "Wrong search type"
+            return
 
         packages = packages.orderBy('latestReleaseDate').reversed()
 
         template = Template('''
             <b>Search results for:</b> $srch
+            <p>Show <a href="/meatoo/search/short/$srch/$type">recent</a> or <a href="/meatoo/search/long/$srch/$type">all</a> releases</p>
             <table>
             <tr> <th>Portage Name</th> <th>Portage Version</th> <th>Freshmeat Version</th> <th>Freshmeat Release Date</th> <th>Maintainers</th></tr>
 
@@ -265,7 +269,7 @@ class MyServer(cptools.PositionalParametersAware):
             #end for
             </table>
             ''', [locals(), globals()])
-        return template.respond()
+        yield template.respond()
     search.exposed = True
 
     def add_known_form(self, pn):
