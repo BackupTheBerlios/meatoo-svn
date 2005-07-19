@@ -85,13 +85,16 @@ class MyServer(cptools.PositionalParametersAware):
 <table>
     #set $i = 0
     #while $i < 5
-        <tr class="alt"><td><b>$week[$i]</b></tr>
+        <tr class="alt"><td colspan=2><b>$week[$i]</b></tr>
         #for $pkg in $packages
             #if $pkg.latestReleaseDate == $week[$i]
                 <tr><td>
                 <a href="http://packages.gentoo.org/search/?sstring=%5E$pkg.packageName%24">
                 $pkg.portageCategory/$pkg.packageName-$pkg.portageVersion</a> [
                 <a class="nav" href="http://freshmeat.net/projects/$pkg.packageName/" title="Freshmeat Latest Release">$pkg.latestReleaseVersion</a> ]
+        </td>
+
+        <td>
         <a class="nav" href="/meatoo/ignore/$pkg.id" title="Ignore this version of this package.">
         <img border=0 src="/meatoo/static/edit.png" alt="Ignore"></a>
         <a class="nav" href="/meatoo/add_known/$pkg.fmName" title="Edit Portage name">
