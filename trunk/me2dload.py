@@ -19,10 +19,8 @@ Contributor: Renat Lumpau
 import optparse
 import sys
 import os
-from commands import getstatusoutput
 import cPickle
 import urllib
-import portage
 
 from cElementTree import iterparse
 import portage
