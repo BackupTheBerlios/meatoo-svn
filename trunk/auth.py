@@ -23,7 +23,7 @@ def needsLogin(fn):
     same page to avoid a redirect when the user logs in correctly.
     '''
     def _wrapper(*args, **kwargs):
-        #if cherrypy.request.sessionMap.has_key('userid'):
+        #if cherrypy.request.sessionMap.has_key('userid'):align="right"
         if cherrypy.session.get('userid', None):
             # User is logged in; allow access
             return fn(*args, **kwargs)
@@ -46,7 +46,6 @@ def needsLogin(fn):
                 # Bad login attempt
                 return loginPage(cherrypy.request.path, 'Invalid username or password.')
             # User is now logged in, so retain the userid and show the content
-            #cherrypy.request.sessionMap['userid'] = userid
             cherrypy.session['userid'] = userid
             return fn(*args, **kwargs)
     return _wrapper
@@ -65,20 +64,18 @@ def getUserId(username, password):
         return None
 
 def loginPage(targetPage, message=None):
-    '''Return a login "pagelet" that replaces the regular content if
-    the user is not logged in.'''
+    '''Return login form page '''
     result = []
     result.append(sections.header())
     result.append('<h1>Meatoo Login</h1>')
     result.append('<br><a href="/meatoo/signup">New account</a><br><br>')
     if message is not None:
         result.append('<p>%s</p>' % message)
-    result.append('<form action=%s method=post>' % targetPage)
+    result.append('<form action=/meatoo%s method=post>' % targetPage)
     result.append('<p>Username: <input type=text name="userName"></p>')
     result.append('<p>Password: <input type=password name="loginPassword"></p>')
     result.append('<p><input type="submit" name="login" value="Log In"></p>')
     result.append('</form>')
     result.append(sections.footer())
     return '\n'.join(result)
-
 
