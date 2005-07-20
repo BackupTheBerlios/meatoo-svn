@@ -113,6 +113,7 @@ class MyServer(cptools.PositionalParametersAware):
         ''', [locals(), globals()])
         return template.respond()
 
+    @cherrypy.expose
     def ignore_action(self, pn, ver):
         """Process ignore form"""
         try:
@@ -126,7 +127,6 @@ class MyServer(cptools.PositionalParametersAware):
         yield pn + "-" +  ver + " ignored.<br><br>"
         yield "Go <a href='/meatoo'>back</a>"
         yield footer()
-    ignore_action.exposed = True
 
     @cherrypy.expose
     @needsLogin
@@ -157,12 +157,12 @@ class MyServer(cptools.PositionalParametersAware):
         ''', [locals(), globals()])
         return template.respond()
 
+    @cherrypy.expose
     def signup(self):
         """Return search results"""
         yield header()
         yield self.signup_section()
         yield footer()
-    signup.exposed = True
 
     def signup_section(self):
         return '''
@@ -180,16 +180,24 @@ class MyServer(cptools.PositionalParametersAware):
              </form>
         '''
 
-    def signup_send(self, email):
+    @cherrypy.expose
+    def signup_send(self, email, *args, **kwargs):
+        yield header()
         if "@" not in email:
-            return "Invalid email address."
+            yield "Invalid email address."
+            yield footer()
+            return
         if email.split("@")[1] != "gentoo.org":
-            return "Only official Gentoo developers may register."
+            yield "Only official Gentoo developers may register."
+            yield footer()
+            return
 
         username = email.split("@")[0] 
         password = accounts.get_password()
         if accounts.get_user_passwd(username):
-            return "You already have an account."
+            yield "You already have an account."
+            yield footer()
+            return
         mail = '''Date: %s\n''' % datetime.datetime.now()
         mail += '''To: <%s>\n''' % email
         mail += '''From: "Meatoo Registration" <gentooexp@gmail.com>\n'''
@@ -202,9 +210,10 @@ class MyServer(cptools.PositionalParametersAware):
         tempFile.close()
         accounts.add_user(username, password)
         os.system('/usr/bin/nbsmtp < %s &' % tfname)
-        return """Your password has been emailed."""
-    signup_send.exposed = True
+        yield """Your password has been emailed."""
+        yield footer()
 
+    @cherrypy.expose
     def search(self, length = "short", srch = "", type = ""):
         """Return search results"""
         yield header()
@@ -270,7 +279,6 @@ class MyServer(cptools.PositionalParametersAware):
             </table>
             ''', [locals(), globals()])
         yield template.respond()
-    search.exposed = True
 
     def add_known_form(self, pn):
         """Generate form for adding known-goods"""
@@ -307,7 +315,8 @@ class MyServer(cptools.PositionalParametersAware):
         yield self.add_known_form(pn)
         yield footer()
 
-		
+    @cherrypy.expose
+    @needsLogin
     def known_submit(self, new_cat="", new_pn="", fmpn=""):
         """Add submitted known match to db"""
         if not new_pn or not new_cat:
@@ -345,8 +354,6 @@ class MyServer(cptools.PositionalParametersAware):
         yield """<b>Success!</b> Go <a href="/meatoo">home</a>"""
         yield footer()
         
-    known_submit.exposed = True
-
     @cherrypy.expose
     @needsLogin
     def login(self, *args, **kwargs):
@@ -364,13 +371,15 @@ class MyServer(cptools.PositionalParametersAware):
             yield "<br><b>You are not logged out. This is a known bug.</b><br>"
         yield footer()
 
+    @cherrypy.expose
     def index(self, verbose = None, login = None):
         """Main index.html page"""
         yield header()
+        #verbose=1 will show you sql id's for debugging
         yield self.body(verbose, login)
         yield footer()
-    index.exposed = True
 
+    @cherrypy.expose
     def rss(self, herd = ""):
         """Generate dynamic RSS feed"""
         if not herd:
@@ -397,6 +406,4 @@ class MyServer(cptools.PositionalParametersAware):
             lastBuildDate = datetime.datetime.utcnow(),
             items = items)
         return rss.to_xml()
-
-    rss.exposed = True
 

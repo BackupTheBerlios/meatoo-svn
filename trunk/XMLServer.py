@@ -2,6 +2,7 @@
 from time import *
 
 import PyRSS2Gen
+import cherrypy
 
 import meatoodb
 
@@ -35,31 +36,32 @@ class MyServer:
             i += 1
         return results
 
+    @cherrypy.expose
     def getLatest(self):
         """Get today's meat"""
         now = gmtime(mktime(gmtime()))
         date = "%s-%02d-%02d" % (now[0], now[1], now[2])
         return self.getDate(date)
-    getLatest.exposed = True
 
+    @cherrypy.expose
     def getDate(self, date):
         """Get by Freshmeat release date"""
         pkgs = Packages.select(Packages.q.latestReleaseDate == date)
         return self._parsePackages(pkgs)
-    getDate.exposed = True
 
+    @cherrypy.expose
     def getPackage(self, pn):
         """Get by exact package name (No category)"""
         pkgs = Packages.select(Packages.q.packageName == pn)
         return self._parsePackages(pkgs)
-    getPackage.exposed = True
 
+    @cherrypy.expose
     def getPartialPackage(self, pn):
         """Get by partial package name (No category)"""
         pkgs = Packages.select(LIKE(Packages.q.packageName, '%' + pn + '%'))
         return self._parsePackages(pkgs)
-    getPartialPackage.exposed = True
 
+    @cherrypy.expose
     def getCatPackage(self, catpn):
         """Get by exact category/package name"""
         if "/" not in catpn:
@@ -67,12 +69,11 @@ class MyServer:
         category, pn = catpn.split("/")
         pkgs = Packages.select(AND (Packages.q.packageName == pn, Packages.q.portageCategory == category) )
         return self._parsePackages(pkgs)
-    getCatPackage.exposed = True
 
+    @cherrypy.expose
     def getMaintainer(self, maintainer):
         """"Get packages by herd or maintainer email address. Not an exact match."""
         pkgs = Packages.select(LIKE(Packages.q.maintainerName, '%' +  maintainer + '%') )
         pkgs = pkgs.orderBy('latestReleaseDate')
         return self._parsePackages(pkgs)
-    getMaintainer.exposed = True
 

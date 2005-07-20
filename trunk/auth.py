@@ -14,6 +14,7 @@ Contributor: Renat Lumpau
 import cherrypy
 
 import accounts
+import sections
 
 
 def needsLogin(fn):
@@ -67,6 +68,7 @@ def loginPage(targetPage, message=None):
     '''Return a login "pagelet" that replaces the regular content if
     the user is not logged in.'''
     result = []
+    result.append(sections.header())
     result.append('<h1>Meatoo Login</h1>')
     result.append('<br><a href="/meatoo/signup">New account</a><br><br>')
     if message is not None:
@@ -76,6 +78,7 @@ def loginPage(targetPage, message=None):
     result.append('<p>Password: <input type=password name="loginPassword"></p>')
     result.append('<p><input type="submit" name="login" value="Log In"></p>')
     result.append('</form>')
+    result.append(sections.footer())
     return '\n'.join(result)
 
 
