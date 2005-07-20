@@ -225,20 +225,32 @@ class MyServer(cptools.PositionalParametersAware):
         'short' means show only new packages, 'long' means show all"""
         if length == "short":
             if type == 'herd':
-                packages = Packages.select( AND ( LIKE(Packages.q.maintainerName, '%' +  srch + '%'), Packages.q.fmNewer==1 ) )
+                packages = Packages.select(AND \
+                            (LIKE(Packages.q.maintainerName, \
+                             '%' +  srch + '%'), \
+                             Packages.q.fmNewer==1))
             elif type == 'pn':
-                packages = Packages.select( AND ( LIKE(Packages.q.packageName, '%' + srch + '%'), Packages.q.fmNewer==1) )
+                packages = Packages.select(AND \
+                            (LIKE(Packages.q.packageName, \
+                             '%' + srch + '%'), \
+                             Packages.q.fmNewer==1))
             elif type == "cat":
-                packages = Packages.select( AND ( LIKE(Packages.q.portageCategory, '%' + srch + '%'), Packages.q.fmNewer==1) )
+                packages = Packages.select(AND \
+                            (LIKE(Packages.q.portageCategory, \
+                             '%' + srch + '%'), \
+                             Packages.q.fmNewer==1))
             else:
                 yield "<b>Nothing found for:</b> %s" % srch
         elif length == "long":
             if type == 'herd':
-                packages = Packages.select(LIKE(Packages.q.maintainerName, '%' +  srch + '%') )
+                packages = Packages.select(LIKE \
+                            (Packages.q.maintainerName, '%' +  srch + '%') )
             elif type == 'pn':
-                packages = Packages.select(LIKE(Packages.q.packageName, '%' + srch + '%'))
+                packages = Packages.select(LIKE \
+                            (Packages.q.packageName, '%' + srch + '%'))
             elif type == "cat":
-                packages = Packages.select(LIKE(Packages.q.portageCategory, '%' + srch + '%'))
+                packages = Packages.select(LIKE \
+                            (Packages.q.portageCategory, '%' + srch + '%'))
             else:
                 yield "<b>Nothing found for:</b> %s" % srch
         else: # something weird
@@ -249,9 +261,12 @@ class MyServer(cptools.PositionalParametersAware):
 
         template = Template('''
             <b>Search results for:</b> $srch
-            <p>Show <a href="/meatoo/search/short/$srch/$type">recent</a> or <a href="/meatoo/search/long/$srch/$type">all</a> releases</p>
+            <p>Show <a href="/meatoo/search/short/$srch/$type">recent</a>
+            or <a href="/meatoo/search/long/$srch/$type">all</a> releases</p>
             <table>
-            <tr> <th>Portage Name</th> <th>Portage Version</th> <th>Freshmeat Version</th> <th>Freshmeat Release Date</th> <th>Maintainers</th></tr>
+            <tr> <th>Portage Name</th> <th>Portage Version</th>
+            <th>Freshmeat Version</th> <th>Freshmeat Release Date</th> 
+            <th>Maintainers</th></tr>
 
             #for $pkg in $packages
                 <tr class="alt">
@@ -357,18 +372,22 @@ class MyServer(cptools.PositionalParametersAware):
     @cherrypy.expose
     @needsLogin
     def login(self, *args, **kwargs):
-        """Show form for editing known matches"""
-        #print "DEBUG", cherrypy.request.headerMap.get('Referer','/')
-        #FIXME: We should send them back to the page they were:
+        """Go to front page if login succeeds."""
         httptools.redirect("/")
+
+    @cherrypy.expose
+    @needsLogin
+    def options(self, *args, **kwargs):
+        yield header()
+        yield "<h1>Options</h1>"
+        yield "Change password<br>"
+        yield "Lost password<br>"
+        yield footer()
 
     def logout(self):
         yield header()
-        try:
-            del cherrypy.session['userid']
-            yield "<br><b>You are logged out.</b><br>"
-        except:
-            yield "<br><b>You are not logged out. This is a known bug.</b><br>"
+        cherrypy.session['userid'] = None
+        httptools.redirect("/")
         yield footer()
 
     @cherrypy.expose

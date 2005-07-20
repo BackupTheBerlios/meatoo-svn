@@ -30,9 +30,10 @@ table
 {
 	width: 100%;
 	background-color:#eee;
-	border-bottom: 1px solid #D9D9D9;
-	border-right: 1px solid #D9D9D9;
-	border-top: 1px solid #c4c4c4;
+	border-bottom: 0px solid #000000;
+	border-right: 0px solid #000000;
+	border-top: 0px solid #000000;
+	border-left: 0px solid #000000;
 }
 th
 {
@@ -50,7 +51,7 @@ td
 	vertical-align:top;
 	padding:3px 5px;
 	background-color:#fff;
-	border-left: 1px solid #D9D9D9;
+	border-left: 0px;
 }
 tr.alt td
 {
