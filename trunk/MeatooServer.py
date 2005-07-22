@@ -13,6 +13,7 @@ import accounts
 from sections import *
 from meatoodb import *
 from auth import *
+from herds import *
 
 
  
@@ -384,37 +385,11 @@ $h.herd
         yield footer()
         
     @cherrypy.expose
-    @needsLogin
-    def login(self, *args, **kwargs):
-        """Go to front page if login succeeds."""
-        httptools.redirect("/")
-
-    @cherrypy.expose
     def show_herds(self, *args, **kwargs):
         """Show form for adding and editing herds and troves"""
         yield header()
-        yield self.list_herds()
+        yield list_herds()
         yield footer()
-
-    def list_herds(self):
-        """Output a list of existing herds"""
-        herds = Herds.select()
-        if herds.count():
-            template = Template('''
-            <p><a href="/meatoo/add_herd">Add</a> a herd</p>
-            <table><th>Herd</th> <th>Trove id*</th></tr>
-            #for herd in $herds
-             <tr><td><a href="/meatoo/edit_herd/$herd.herd">$herd.herd</a></td>
-              <td>$herd.trove</td>
-            #end for
-            </table>
-            <p>* Comma-separated</p>
-            ''', [locals(), globals()])
-        else:
-            template = Template('''
-            <p><a href="/meatoo/add_herd">Add</a> a herd</p>
-            <b>No herds found</b>''')
-        yield template.respond()
         
     @cherrypy.expose
     @needsLogin
@@ -479,39 +454,16 @@ $h.herd
             if h.count():
                 yield "Herd with that name already exists"
             else:
-                yield self.do_add(herd)
+                yield do_add(herd)
         elif action == "edit":
             h = Herds.select(Herds.q.herd == old_herd)
             if not h.count():
                 yield "No such herd"
             else:
-                yield self.do_edit(herd, trove, old_herd)
+                yield do_edit(herd, trove, old_herd)
         else:
             yield "Wrong action"
         yield footer()
-
-    def do_add(self, herd):
-        """Actually add herd"""
-        try:
-            h = Herds(herd = herd, trove = "")
-            template = Template ('''<b>Success!</b> <a href="/meatoo/edit_herd/$herd ">Edit</a> herd you just added''', [locals(), globals()])
-        except:
-            template = Template ('''<p>Error updating database.</p>''')
-        return template.respond()
-        
-    def do_edit(self, new_herd, new_trove, old_herd):
-        """Actually edit herd"""
-        try:
-            if new_herd != old_herd:
-                if Herds.select(Herds.q.herd == new_herd).count():
-                    yield "Herd with that name already exists"
-                    return
-            H = Herds.select(Herds.q.herd == old_herd)
-            H[0].set(herd = new_herd, trove = new_trove)
-            template = Template ('''<b>Success!</b> <a href="/meatoo/edit_herd/$new_herd ">Edit</a> herd you just added''', [locals(), globals()])
-        except:
-            template = Template ('''<p>Error updating database.</p>''')
-        yield template.respond()
 
     @cherrypy.expose
     @needsLogin
@@ -521,6 +473,12 @@ $h.herd
         yield "Change password<br>"
         yield "Lost password<br>"
         yield footer()
+
+    @cherrypy.expose
+    @needsLogin
+    def login(self, *args, **kwargs):
+        """Go to front page if login succeeds."""
+        httptools.redirect("/")
 
     def logout(self):
         yield header()
