@@ -45,8 +45,22 @@ class MyServer(cptools.PositionalParametersAware):
                                     Packages.q.latestReleaseDate == week[4]
                                     ))
         packages = packages.orderBy('latestReleaseDate').reversed()
+        herds = Herds.select()
         template = Template('''
-<table><tr><td width="65%"><table><br><b>Latest:</b>
+
+<table><tr>
+<td width="13%">
+<br><b>Herds </b><a href="/meatoo/add_herd">[+]</a>
+<br />
+#for $h in $herds
+<!-- <a href="/meatoo/$h.herd"> -->
+$h.herd
+<!-- </a> -->
+<a href="/meatoo/edit_herd/$h.herd"><img border=0 src="/meatoo/static/edit.gif"></a>
+<br />
+#end for
+</td>
+<td width="65%"><table><br><b>Latest:</b>
 #for $pkg in $packages
     #if $pkg.latestReleaseDate == $week[0] or $pkg.latestReleaseDate == $week[1]
         <tr class="alt">
@@ -85,7 +99,7 @@ class MyServer(cptools.PositionalParametersAware):
 <table>
     #set $i = 0
     #while $i < 5
-        <tr class="alt"><td colspan=2><b>$week[$i]</b></tr>
+        <tr class="alt"><td colspan=3><b>$week[$i]</b></tr>
         #for $pkg in $packages
             #if $pkg.latestReleaseDate == $week[$i]
                 <tr><td>
@@ -137,7 +151,7 @@ class MyServer(cptools.PositionalParametersAware):
         yield footer()
 
     def ignore_form(self, id):
-        """Form for ignoreing pkgs"""
+        """Form for ignoring pkgs"""
         pkg = Packages.get(id)
         template = Template('''
             <form method="get" action="/meatoo/ignore_action/">
@@ -376,6 +390,130 @@ class MyServer(cptools.PositionalParametersAware):
         httptools.redirect("/")
 
     @cherrypy.expose
+    def show_herds(self, *args, **kwargs):
+        """Show form for adding and editing herds and troves"""
+        yield header()
+        yield self.list_herds()
+        yield footer()
+
+    def list_herds(self):
+        """Output a list of existing herds"""
+        herds = Herds.select()
+        if herds.count():
+            template = Template('''
+            <p><a href="/meatoo/add_herd">Add</a> a herd</p>
+            <table><th>Herd</th> <th>Trove id*</th></tr>
+            #for herd in $herds
+             <tr><td><a href="/meatoo/edit_herd/$herd.herd">$herd.herd</a></td>
+              <td>$herd.trove</td>
+            #end for
+            </table>
+            <p>* Comma-separated</p>
+            ''', [locals(), globals()])
+        else:
+            template = Template('''
+            <p><a href="/meatoo/add_herd">Add</a> a herd</p>
+            <b>No herds found</b>''')
+        yield template.respond()
+        
+    @cherrypy.expose
+    @needsLogin
+    def add_herd(self, *args, **kwargs):
+        """Add a herd"""
+        yield header()
+        template = Template ('''
+             <form method="post" action="/meatoo/process_herd/add">
+             <div>
+              <h3>Add a herd</h3>
+              Currently only Gentoo developers can modify herd info.<br /><br />
+              <div>
+               <label for="herd" size="10">Herd name:</label>
+               <input type="text" id="herd" name="herd" class="textwidget" size="30"
+                      value="" />
+              </div></div><div><br />
+               <input type="submit" value="Add" />
+              </div>
+             </form>''')
+        yield template.respond()
+        yield footer()
+
+    @cherrypy.expose
+    @needsLogin
+    def edit_herd(self, herd, *args, **kwargs):
+        """Edit a herd"""
+        try:
+            h = Herds.select(Herds.q.herd == herd)
+        except:
+            yield "Failed to connect to db"
+            return
+        yield header()
+        
+        template = Template ('''
+             <form method="post" action="/meatoo/process_herd/edit">
+             <div>
+              <h3>Edit a herd</h3>
+              Currently only Gentoo developers can modify herd info.<br /><br />
+              <div>
+               <table><th>Herd Name:</th> <th>Troves:</th>
+               #for $herds in $h 
+                <tr><td><input type="text" id="herd" name="herd" class="textwidget" size="30" value="$herds.herd" /></td>
+               <td><input type="text" id="trove" name="trove" class="textwidget" size="30" value="$herds.trove" />
+               <input type="hidden" id="old_herd" name="old_herd" value="$herd" /></td></tr>
+               #end for
+               </table>
+              </div></div><div><br />
+               <input type="submit" value="Add" />
+              </div>
+             </form>
+            ''', [locals(), globals()])
+        yield template.respond()
+        yield footer()
+        
+    @cherrypy.expose
+    @needsLogin
+    def process_herd(self, action, herd, trove="", old_herd="", *args, **kwargs):
+        """Process add/edit herd request. Action is add or edit"""
+        yield header()
+        if action == "add":
+            h = Herds.select(Herds.q.herd == herd)
+            if h.count():
+                yield "Herd with that name already exists"
+            else:
+                yield self.do_add(herd)
+        elif action == "edit":
+            h = Herds.select(Herds.q.herd == old_herd)
+            if not h.count():
+                yield "No such herd"
+            else:
+                yield self.do_edit(herd, trove, old_herd)
+        else:
+            yield "Wrong action"
+        yield footer()
+
+    def do_add(self, herd):
+        """Actually add herd"""
+        try:
+            h = Herds(herd = herd, trove = "")
+            template = Template ('''<b>Success!</b> <a href="/meatoo/edit_herd/$herd ">Edit</a> herd you just added''', [locals(), globals()])
+        except:
+            template = Template ('''<p>Error updating database.</p>''')
+        return template.respond()
+        
+    def do_edit(self, new_herd, new_trove, old_herd):
+        """Actually edit herd"""
+        try:
+            if new_herd != old_herd:
+                if Herds.select(Herds.q.herd == new_herd).count():
+                    yield "Herd with that name already exists"
+                    return
+            H = Herds.select(Herds.q.herd == old_herd)
+            H[0].set(herd = new_herd, trove = new_trove)
+            template = Template ('''<b>Success!</b> <a href="/meatoo/edit_herd/$new_herd ">Edit</a> herd you just added''', [locals(), globals()])
+        except:
+            template = Template ('''<p>Error updating database.</p>''')
+        yield template.respond()
+
+    @cherrypy.expose
     @needsLogin
     def options(self, *args, **kwargs):
         yield header()
@@ -389,7 +527,7 @@ class MyServer(cptools.PositionalParametersAware):
         cherrypy.session['userid'] = None
         httptools.redirect("/")
         yield footer()
-
+    
     @cherrypy.expose
     def index(self, verbose = None, login = None):
         """Main index.html page"""
