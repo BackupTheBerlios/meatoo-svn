@@ -23,7 +23,6 @@ def needsLogin(fn):
     same page to avoid a redirect when the user logs in correctly.
     '''
     def _wrapper(*args, **kwargs):
-        #if cherrypy.request.sessionMap.has_key('userid'):align="right"
         if cherrypy.session.get('userid', None):
             # User is logged in; allow access
             return fn(*args, **kwargs)
@@ -59,15 +58,16 @@ def getUserId(username, password):
     except:
         return None
     if db_pswd == password:
-        return True
+        return username
     else:
         return None
 
 def loginPage(targetPage, message=None):
     '''Return login form page '''
     result = []
-    result.append(sections.header())
-    result.append('<h1>Meatoo Login</h1>')
+    result.append(sections.header_top())
+    result.append('<table class="admin"><tr><td>')
+    result.append('<h1 class="admin">Login</h1>')
     result.append('<br><a href="/meatoo/signup">New account</a><br><br>')
     if message is not None:
         result.append('<p>%s</p>' % message)
@@ -76,6 +76,7 @@ def loginPage(targetPage, message=None):
     result.append('<p>Password: <input type=password name="loginPassword"></p>')
     result.append('<p><input type="submit" name="login" value="Log In"></p>')
     result.append('</form>')
+    result.append('</td></tr></table>')
     result.append(sections.footer())
     return '\n'.join(result)
 
