@@ -38,7 +38,11 @@ def set_herd_session():
     username = accounts.get_logged_username()
     if username:
         user = Users.select(Users.q.user == username)
-        herds = user[0].herdsAuto + " " + user[0].herdsUser
+        if user[0].herdsUser:
+            herds = user[0].herdsAuto + " " + user[0].herdsUser
+            herds = " ".join(herds.split())
+        else:
+            herds = user[0].herdsAuto
         cherrypy.session['herds'] = herds
     else:
         cherrypy.session['herds'] = None

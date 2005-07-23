@@ -1,11 +1,13 @@
 
 <table><tr>
-<td width="13%">
+<td width="15%">
 #if $my_herds
 <br>
-<b>My Herds</b><br>
+<b>My Herds</b><a href="/meatoo/add_user_herd">[+]</a><br />
 #for $my_h in $my_herds
-    <a href="/meatoo/search/short/$my_h/herd">$my_h</a><br>
+    <a href="/meatoo/search/short/$my_h/herd">$my_h</a>
+    <a href="/meatoo/del_user_herd/$my_h"><img border=0 src="/meatoo/static/delete.png"></a>    
+    <br>
 #end for
 #end if
 <br><b>All Herds </b><a href="/meatoo/add_herd">[+]</a>

@@ -284,6 +284,68 @@ class MyServer(cptools.PositionalParametersAware):
         yield footer()
         
     @needsLogin
+    def add_user_herd(self, *args, **kwargs):
+        """Add user's herd"""
+        yield header_top()
+        template = Template ('''
+            <table class="admin"><tr><td>
+             <form method="post" action="/meatoo/process_user_herd">
+             <div>
+              <h1 class="admin">Add a herd</h1>
+              <div>
+               <label for="herd" size="10">Herd name:</label>
+               <input type="text" id="herd" name="herd" class="textwidget" size="30"
+                      value="" />
+              </div></div><div><br />
+               <input type="submit" value="Add" />
+              </div>
+             </form></td></tr></table>''')
+        yield template.respond()
+        yield footer()
+
+    def del_user_herd(self, herd):
+        """Delete user's herd"""
+        
+        username = accounts.get_logged_username()
+        u = Users.select(Users.q.user == username)
+        if herd in u[0].herdsAuto:
+            yield self.error_form ("You are a member of that herd, which means you cannot delete it from your Meatoo preferences. Sorry.")
+            return
+        elif herd in u[0].herdsUser:
+            s = u[0].herdsUser.split()
+            s.remove(herd)
+            if s:
+                u[0].set(herdsUser = " ".join(s))
+            else:
+                u[0].set(herdsUser = "")
+        else: #weird
+            yield self.error_form ("Couldn't find that herd in your list of herds")
+            return
+
+        utils.set_herd_session()
+        yield header_top()
+        template = Template('''<b>Success.</b> Go <a href="/meatoo">home</a>''')
+        yield template.respond()
+        yield footer()
+
+    @needsLogin
+    def process_user_herd(self, herd, *args, **kwargs):
+        """Process add user herd request."""
+        
+        username = accounts.get_logged_username()
+        h = Users.select(Users.q.user == username)
+        if h[0]:
+            h[0].set(herdsUser = h[0].herdsUser + " " + herd)
+        else:
+            h[0].set(herdsUser = herd)
+        utils.set_herd_session()
+
+        yield header_top()
+        template = Template('''<b>Success.</b> Go <a href="/meatoo">home</a>''')
+        yield template.respond()
+        yield footer()
+    
+    @needsLogin
     def add_herd(self, *args, **kwargs):
         """Add a herd"""
         yield header_top()
