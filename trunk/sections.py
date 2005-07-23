@@ -4,7 +4,12 @@ import cherrypy
 
 
 def header():
-    """ Yields header html"""
+    """Returns logo/links + search bar"""
+    yield header_top()
+    yield search_bar()
+
+def header_top():
+    """ Yields logo + links html"""
     logged = False
     if cherrypy.session.get('userid', None):
         logged = True
@@ -18,10 +23,11 @@ def header():
     <table class="table" cellspacing=0 cellpadding=0 border=0>
     <tr border=0><td border=0><a href="/meatoo"><img border=0 src="/meatoo/static/meatoo.png"></a></td>
     <td border=0 align="right"><p align="right">
+    <a href="/meatoo">Home</a> |
     <a href="/meatoo/static/faq.html">FAQ</a> | Advanced Search |
     #if $logged:
-        <a href="/meatoo/logout"> Logout</a> |
-        <a href="/meatoo/options"> Options</a>
+        <a href="/meatoo/options"> Options</a> |
+        <a href="/meatoo/logout"> Logout</a> 
     #else
         <a href="/meatoo/login">Login</a>
     #end if
@@ -29,8 +35,11 @@ def header():
     </td>
     </tr>
     <tr><td colspan="2"><b>Find Gentoo packages needing a version bump by checking the latest Freshmeat releases.</b></td></tr>
-    </table>
+    </table>""", [locals(), globals()])
+    return template.respond()
 
+def search_bar():
+    return """
     <table>
     <tr>
         <td>Search by Herd/Maintainer
@@ -55,11 +64,7 @@ def header():
     </tr>
     </table> 
     <br>
-    """, [locals(), globals()])
-    return template.respond()
-
-    
-
+    """
 
 def footer():
     """ Yields footer html"""
