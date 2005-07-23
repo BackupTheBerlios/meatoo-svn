@@ -1,3 +1,5 @@
+/* Edited with EditCSS */
+/**** LINK-tag style sheet stylin.css ****/
 
 a:hover, a.nav:hover { color: #4E591C; }
 body
@@ -26,6 +28,25 @@ body>h1
 {
 	margin-top:0;
 }
+
+
+h1.admin
+{
+	font-size:110%;
+	font-weight:bold;
+}
+
+table.admin
+{
+	width: 100%;
+	background-color:#eee;
+	border-bottom: 20px solid #000000;
+	border-right: 20px solid #eff0ff;
+	border-top: 50px solid #eff0ff;
+	border-left: 20px solid #eff0ff;
+	border-bottom: 20px solid #eff0ff;
+}
+
 table 
 {
 	width: 100%;
@@ -105,4 +126,5 @@ tr.alt td.hilite
 {
 	background-color:red;
 }
+
 
