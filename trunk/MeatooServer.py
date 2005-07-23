@@ -31,8 +31,6 @@ class MyServer(cptools.PositionalParametersAware):
     def index(self, verbose = None):
         """Main index.html page"""
         #verbose=1 will show you sql id's for debugging
-
-        """Yields body html"""
         #For debugging, seeing cookies etc:
         print cherrypy.request.headerMap
         week = utils.get_days()
@@ -68,8 +66,11 @@ class MyServer(cptools.PositionalParametersAware):
         except:
             pass
         ignore = Ignores(packageName = pn, latestReleaseVersion = ver)
+        yield header_top()
+        yield "<table class='admin'><tr><td>"
         yield pn + "-" +  ver + " ignored.<br><br>"
         yield "Go <a href='/meatoo'>back</a>"
+        yield "</td></tr></table>"
         yield footer()
 
     @cherrypy.expose
@@ -104,7 +105,7 @@ class MyServer(cptools.PositionalParametersAware):
     @cherrypy.expose
     def signup(self):
         """Return search results"""
-        yield header()
+        yield header_top()
         yield self.signup_section()
         yield footer()
 
@@ -112,7 +113,8 @@ class MyServer(cptools.PositionalParametersAware):
         return '''
              <form method="get" action="/meatoo/signup_send/">
              <div>
-              <h3>Meatoo Signup</h3>
+              <h1 class="admin">Meatoo Signup</h1>
+              <table class="admin"><tr><td>
               Currently only Gentoo developers can signup to edit Meatoo entries.<br><br>
               <div>
                <label for="email">Email:</label>
@@ -122,20 +124,31 @@ class MyServer(cptools.PositionalParametersAware):
                <input type="submit" value="Register" />
               </div>
              </form>
+             </td></tr></table>
         '''
+
+
+    @cherrypy.expose
+    def error_form(self, msg, *args, **kwargs):
+        """Standard error message form"""
+        #TODO: Add optional 'go back' url link
+        yield header_top()
+        yield "<table class='admin'><tr><td><h1 class='admin'>Error:</h1></td></tr>"
+        yield "<tr><td><b>"
+        yield msg
+        yield "</b></td></tr></table>"
+        yield footer()
 
     @cherrypy.expose
     def signup_send(self, email, *args, **kwargs):
-        yield header()
         if "@" not in email:
-            yield "Invalid email address."
-            yield footer()
+            yield self.error_form("Invalid email address.")
             return
         if email.split("@")[1] != "gentoo.org":
-            yield "Only official Gentoo developers may register."
-            yield footer()
+            yield self.error_form("Only official Gentoo developers may register.")
             return
 
+        yield header()
         username = email.split("@")[0] 
         password = accounts.get_password()
         if accounts.get_user_passwd(username):
