@@ -1,0 +1,34 @@
+
+<b>Search results for:</b> $srch
+<p>Show <a href="/meatoo/search/short/$srch/$type">recent</a>
+or <a href="/meatoo/search/long/$srch/$type">all</a> releases</p>
+<table>
+<tr> <th>Portage Name</th> <th>Portage Version</th>
+<th>Freshmeat Version</th> <th>Freshmeat Release Date</th> 
+<th>Maintainers</th></tr>
+
+#for $pkg in $packages
+    <tr class="alt">
+    <td><a href="http://packages.gentoo.org/search/?sstring=%5E$pkg.packageName%24">
+    $pkg.portageCategory/$pkg.packageName</a>
+    <a class="nav" href="/meatoo/ignore/$pkg.id" title="Ignore this version of this package.">
+    <img border=0 src="/meatoo/static/edit.png" alt="Ignore"></a>
+
+    <a class="nav" href="/meatoo/add_known/$pkg.fmName" title="Edit Portage name">
+    <img border=0 src="/meatoo/static/edit.gif"></a>
+    <a class="nav" href="$pkg.urlHomepage" title="Project Homepage">
+    <img border=0 src="/meatoo/static/home.png"></a></td>
+    #if pkg.fmNewer
+        <td class="hilite">$pkg.portageVersion</td>
+    #else
+        <td>$pkg.portageVersion</td>
+    #end if
+    <td><a href="http://freshmeat.net/projects/$pkg.packageName/">$pkg.latestReleaseVersion</a>
+    <a class="nav" href="http://freshmeat.net/redir/$pkg.packageName/$pkg.urlChangelog/url_changelog/" title="changelog">
+    <img border=0 src="/meatoo/static/changelog.gif"></a>
+    </td><td>$pkg.latestReleaseDate</td>
+    <td>$pkg.maintainerName</td>
+    </tr>
+#end for
+</table>
+

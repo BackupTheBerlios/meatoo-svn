@@ -1,0 +1,84 @@
+
+<table><tr>
+<td width="13%">
+#if $my_herds
+<br>
+<b>My Herds</b><br>
+#for $my_h in $my_herds
+    <a href="/meatoo/search/short/$my_h/herd">$my_h</a><br>
+#end for
+#end if
+<br><b>All Herds </b><a href="/meatoo/add_herd">[+]</a>
+<br />
+#for $h in $herds
+<!-- <a href="/meatoo/$h.herd"> -->
+$h.herd
+<!-- </a> -->
+<a href="/meatoo/edit_herd/$h.herd"><img border=0 src="/meatoo/static/edit.gif"></a>
+<br />
+#end for
+</td>
+<td width="55%"><table><br><b>Latest:</b>
+#for $pkg in $packages
+#if $pkg.latestReleaseDate == $week[0] or $pkg.latestReleaseDate == $week[1]
+    <tr class="alt">
+    <td>
+
+    #if $verbose
+        ($pkg.id)
+    #end if    
+
+    <b><a href="http://packages.gentoo.org/search/?sstring=%5E$pkg.packageName%24">
+    $pkg.portageCategory/$pkg.packageName-$pkg.portageVersion</a> [
+    <a class="nav" href="http://freshmeat.net/projects/$pkg.packageName/" title="Freshmeat Latest Release">$pkg.latestReleaseVersion</a> ]</b>
+    $pkg.latestReleaseDate 
+
+    <a class="nav" href="/meatoo/ignore/$pkg.id" title="Ignore this version of this package.">
+    <img border=0 src="/meatoo/static/edit.png" alt="Ignore"></a>
+    <a class="nav" href="/meatoo/add_known/$pkg.fmName" title="Edit Portage name">
+    <img border=0 src="/meatoo/static/edit.gif"></a>
+    <a class="nav" href="$pkg.urlHomepage" title="Project Homepage">
+    <img border=0 src="/meatoo/static/home.png"></a>
+
+    <a class="nav" href="http://freshmeat.net/redir/$pkg.packageName/$pkg.urlChangelog/url_changelog/" title="View ChangeLog">
+    <img border=0 src="/meatoo/static/changelog.gif" alt="changelog"></a>
+
+    </td></tr><tr><td><br>
+    $pkg.portageDesc
+    <br><br>
+    <b>Freshmeat description:</b><br>
+    $pkg.descShort<br><br>
+    <b>Maintainers:</b> $pkg.maintainerName<br><br></td></tr>
+#end if
+#end for
+</table>
+</td>
+<td>
+<table>
+#set $i = 0
+#while $i < 5
+    <tr class="alt"><td colspan=3><b>$week[$i]</b></tr>
+    #for $pkg in $packages
+        #if $pkg.latestReleaseDate == $week[$i]
+            <tr><td>
+            <a href="http://packages.gentoo.org/search/?sstring=%5E$pkg.packageName%24">
+            $pkg.portageCategory/$pkg.packageName-$pkg.portageVersion</a> [
+            <a class="nav" href="http://freshmeat.net/projects/$pkg.packageName/" title="Freshmeat Latest Release">$pkg.latestReleaseVersion</a> ]
+    </td>
+
+    <td>
+    <a class="nav" href="/meatoo/ignore/$pkg.id" title="Ignore this version of this package.">
+    <img border=0 src="/meatoo/static/edit.png" alt="Ignore"></a>
+    <a class="nav" href="/meatoo/add_known/$pkg.fmName" title="Edit Portage name">
+    <img border=0 src="/meatoo/static/edit.gif"></a>
+    <a class="nav" href="$pkg.urlHomepage" title="Project Homepage">
+    <img border=0 src="/meatoo/static/home.png"></a>
+
+    <a class="nav" href="http://freshmeat.net/redir/$pkg.packageName/$pkg.urlChangelog/url_changelog/" title="View ChangeLog">
+    <img border=0 src="/meatoo/static/changelog.gif" alt="changelog"></a>
+            </td></tr>
+        #end if
+    #end for
+    #set $i += 1 
+#end while
+</table></td></tr></table>
