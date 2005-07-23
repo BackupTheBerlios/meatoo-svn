@@ -3,6 +3,7 @@ import datetime
 from time import *
 import tempfile
 import ConfigParser
+import types
 
 import cherrypy
 from cherrypy.lib import cptools
@@ -16,18 +17,25 @@ from sections import *
 from meatoodb import *
 from auth import *
 from herds import *
- 
+
+class exposed(type):
+   def __init__(cls, name, bases, dict):
+      super(exposed, cls).__init__(name, bases, dict)
+      for name, value in dict.iteritems():
+        if type(value)==types.FunctionType and not name.startswith('_'):
+           value.exposed = True
+
 class MyServer(cptools.PositionalParametersAware):
 
     """Server class for meatoo"""
 
+    __metaclass__ = exposed
     def __init__(self, config):
         cptools.PositionalParametersAware.__init__(self)
         self.config = config
         self._body_tmpl = templates.body()
         self._search_tmpl = templates.search()
 
-    @cherrypy.expose
     def index(self, verbose = None):
         """Main index.html page"""
         #verbose=1 will show you sql id's for debugging
@@ -55,7 +63,6 @@ class MyServer(cptools.PositionalParametersAware):
         yield self._body_tmpl.respond()
         yield footer()
 
-    @cherrypy.expose
     def ignore_action(self, pn, ver):
         """Process ignore form"""
         try:
@@ -73,16 +80,9 @@ class MyServer(cptools.PositionalParametersAware):
         yield "</td></tr></table>"
         yield footer()
 
-    @cherrypy.expose
     @needsLogin
     def ignore(self, id, *args, **kwargs):
         """Ignore particular version of pkg"""
-        yield header()
-        yield self.ignore_form(id)
-        yield footer()
-
-    def ignore_form(self, id):
-        """Form for ignoring pkgs"""
         pkg = Packages.get(id)
         template = Template('''
             <form method="get" action="/meatoo/ignore_action/">
@@ -100,17 +100,14 @@ class MyServer(cptools.PositionalParametersAware):
             </div>
             </form>
         ''', [locals(), globals()])
-        return template.respond()
+        yield header_top()
+        yield template.respond()
+        yield footer()
 
-    @cherrypy.expose
     def signup(self):
         """Return search results"""
         yield header_top()
-        yield self.signup_section()
-        yield footer()
-
-    def signup_section(self):
-        return '''
+        yield '''
              <form method="get" action="/meatoo/signup_send/">
              <div>
               <h1 class="admin">Meatoo Signup</h1>
@@ -126,9 +123,9 @@ class MyServer(cptools.PositionalParametersAware):
              </form>
              </td></tr></table>
         '''
+        yield footer()
 
 
-    @cherrypy.expose
     def error_form(self, msg, *args, **kwargs):
         """Standard error message form"""
         #TODO: Add optional 'go back' url link
@@ -139,7 +136,6 @@ class MyServer(cptools.PositionalParametersAware):
         yield "</b></td></tr></table>"
         yield footer()
 
-    @cherrypy.expose
     def signup_send(self, email, *args, **kwargs):
         if "@" not in email:
             yield self.error_form("Invalid email address.")
@@ -170,16 +166,10 @@ class MyServer(cptools.PositionalParametersAware):
         yield """Your password has been emailed."""
         yield footer()
 
-    @cherrypy.expose
     def search(self, length = "short", srch = "", type = ""):
-        """Return search results"""
-        yield header()
-        yield self.search_results(length, srch, type)
-        yield footer()
-
-    def search_results(self, length, srch, type):
         """Return search results page. length refers to verbosity. 
         'short' means show only new packages, 'long' means show all"""
+        yield header()
         if length == "short":
             if type == 'herd':
                 packages = Packages.select(AND \
@@ -219,15 +209,17 @@ class MyServer(cptools.PositionalParametersAware):
         self._search_tmpl.type = type
         self._search_tmpl.packages = packages
         yield self._search_tmpl.respond()
+        yield footer()
 
-    def add_known_form(self, pn):
-        """Generate form for adding known-goods"""
+    @needsLogin
+    def add_known(self, pn, *args, **kwargs):
+        """Show form for editing known matches"""
+        yield header_top()
         packages = KnownGood.select(KnownGood.q.fmName == pn )
         if packages.count():
             fullName = packages[0].portageCategory + "/" + packages[0].packageName
         else:
             fullName = "No matches found!"
-
         template = Template('''
         <b>Edit Portage name for:</b> $pn
         <table>
@@ -244,16 +236,9 @@ class MyServer(cptools.PositionalParametersAware):
         </table>
         <center><input type='submit' value="Submit"></center>
         </form>''', [locals(), globals()])
-
-    @cherrypy.expose
-    @needsLogin
-    def add_known(self, pn, *args, **kwargs):
-        """Show form for editing known matches"""
-        yield header()
-        yield self.add_known_form(pn)
+        yield template.respond()
         yield footer()
 
-    @cherrypy.expose
     @needsLogin
     def known_submit(self, new_cat="", new_pn="", fmpn=""):
         """Add submitted known match to db"""
@@ -292,14 +277,12 @@ class MyServer(cptools.PositionalParametersAware):
         yield """<b>Success!</b> Go <a href="/meatoo">home</a>"""
         yield footer()
         
-    @cherrypy.expose
     def show_herds(self, *args, **kwargs):
         """Show form for adding and editing herds and troves"""
         yield header()
         yield list_herds()
         yield footer()
         
-    @cherrypy.expose
     @needsLogin
     def add_herd(self, *args, **kwargs):
         """Add a herd"""
@@ -321,7 +304,6 @@ class MyServer(cptools.PositionalParametersAware):
         yield template.respond()
         yield footer()
 
-    @cherrypy.expose
     @needsLogin
     def edit_herd(self, herd, *args, **kwargs):
         """Edit a herd"""
@@ -353,7 +335,6 @@ class MyServer(cptools.PositionalParametersAware):
         yield template.respond()
         yield footer()
         
-    @cherrypy.expose
     @needsLogin
     def process_herd(self, action, herd, trove="", old_herd="", *args, **kwargs):
         """Process add/edit herd request. Action is add or edit"""
@@ -374,7 +355,6 @@ class MyServer(cptools.PositionalParametersAware):
             yield "Wrong action"
         yield footer()
 
-    @cherrypy.expose
     @needsLogin
     def options(self, *args, **kwargs):
         yield header_top()
@@ -384,30 +364,18 @@ class MyServer(cptools.PositionalParametersAware):
         yield "</td></tr></table>"
         yield footer()
 
-    @cherrypy.expose
     @needsLogin
     def login(self, *args, **kwargs):
         """Go to front page if login succeeds."""
-        self.set_herd_session()
+        utils.set_herd_session()
         httptools.redirect("/")
 
-    def set_herd_session(self):
-        """Set session var with herds user belongs to"""
-        username = accounts.get_logged_username()
-        if username:
-            herds = " ".join(get_dev_herds(username))
-            cherrypy.session['herds'] = herds
-        else:
-            cherrypy.session['herds'] = None
-
-    @cherrypy.expose
     def logout(self):
         """Logout and goto / """
         cherrypy.session['userid'] = None
         cherrypy.session['herds'] = None
         httptools.redirect("/")
     
-    @cherrypy.expose
     def rss(self, herd = ""):
         """Generate dynamic RSS feed"""
         if not herd:

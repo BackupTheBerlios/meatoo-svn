@@ -11,6 +11,9 @@ from time import *
 import datetime
 
 import PyRSS2Gen
+import accounts
+import herds
+import cherrypy
 
 
 def get_dload_size(url):
@@ -27,6 +30,15 @@ def get_days():
         week.append("%s-%02d-%02d" % (now[0], now[1], now[2]))
         i += 1
     return week
+
+def set_herd_session():
+    """Set session var with herds user belongs to"""
+    username = accounts.get_logged_username()
+    if username:
+        my_herds = " ".join(herds.get_dev_herds(username))
+        cherrypy.session['herds'] = my_herds
+    else:
+        cherrypy.session['herds'] = None
 
 def generate_rss(packages, herd):
     """Return dynamic RSS feed for given packages"""
