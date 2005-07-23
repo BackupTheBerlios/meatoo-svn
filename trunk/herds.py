@@ -13,7 +13,10 @@ Contributor: Renat Lumpau
 
 from Cheetah.Template import Template
 
+from commands import getstatusoutput
+
 from meatoodb import *
+
 
 def list_herds():
     """Output a list of existing herds"""
@@ -57,3 +60,31 @@ def do_edit(new_herd, new_trove, old_herd):
     except:
         template = Template ('''<p>Error updating database.</p>''')
     yield template.respond()
+
+def get_maints(cpn):
+    """Return maintainers for CPN"""
+    cmd = "herdstat -q -n -m %s" % cpn
+    status, output = getstatusoutput(cmd)
+    m = output.splitlines()
+    if status or m[1].strip() == "No metadata.xml":
+        return "NoMetadata"
+    
+    maints = m[1]
+    herds = m[2]
+    if maints.strip() == "none":
+        maints = ""
+    if herds.strip() == "none":
+        herds = ""
+    if not herds and not maints:
+        return "NoMetadata"
+    return "%s %s" % (maints, herds)
+
+def get_dev_herds(dev):
+    """Return all herds for Gentoo dev"""
+    cmd = "herdstat -q -d %s" % dev
+    status, output = getstatusoutput(cmd)
+    if status:
+        return
+    return output.splitlines()
+
+
