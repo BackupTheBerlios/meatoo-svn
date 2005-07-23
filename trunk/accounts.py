@@ -13,6 +13,12 @@ import cherrypy
 from meatoodb import *
 import herds
 
+def change_passwd(username, passwd):
+    """Change existing passwd"""
+    user = Users.select(Users.q.user==username)
+    if user.count():
+        user[0].set(password = passwd)
+        return True
 
 def get_user_passwd(username):
     """Return password for given username"""

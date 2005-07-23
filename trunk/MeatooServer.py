@@ -35,6 +35,7 @@ class MyServer(cptools.PositionalParametersAware):
         self.config = config
         self._body_tmpl = templates.body()
         self._search_tmpl = templates.search()
+        self._change_passwd_tmpl = templates.change_passwd()
 
     def index(self, verbose = None):
         """Main index.html page"""
@@ -438,6 +439,31 @@ class MyServer(cptools.PositionalParametersAware):
         cherrypy.session['herds'] = None
         httptools.redirect("/")
     
+    @needsLogin
+    def change_passwd(self, *args, **kwargs):
+        yield header_top()
+        yield self._change_passwd_tmpl.respond()
+        yield footer()
+
+    @needsLogin
+    def change_passwd_action(self, old_passwd, new_passwd, confirm_passwd, *args, **kwargs):
+        username = accounts.get_logged_username()
+        password = accounts.get_user_passwd(username)
+        if password != old_passwd:
+            yield self.error_form("Old password is incorrect.<br><br><a href='/meatoo/change_passwd'>Try again.</a>")
+            return
+        if new_passwd != confirm_passwd:
+            yield self.error_form("New passwords don't match.<br><br><a href='/meatoo/change_passwd'>Try again.</a>")
+            return
+        if accounts.change_passwd(username, new_passwd):
+            yield header_top()
+            yield "<table class='admin'><tr><td><h1 class='admin'>Change Passwd Results</h1>"
+            yield "<b>Password changed.</b>"
+            yield "</td></tr></table>"
+            yield footer()
+        else:
+            yield self.error_form("Error: Failed to change passwd.")
+
     def rss(self, herd = ""):
         """Generate dynamic RSS feed"""
         if not herd:
