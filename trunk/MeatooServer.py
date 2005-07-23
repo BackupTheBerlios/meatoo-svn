@@ -10,35 +10,32 @@ from cherrypy.lib import httptools
 from Cheetah.Template import Template
 
 import accounts
+import utils
+import templates
 from sections import *
 from meatoodb import *
 from auth import *
 from herds import *
-
-
  
 class MyServer(cptools.PositionalParametersAware):
-    """Server class for meatoo"""
 
+    """Server class for meatoo"""
 
     def __init__(self, config):
         cptools.PositionalParametersAware.__init__(self)
         self.config = config
+        self._body_tmpl = templates.body()
+        self._search_tmpl = templates.search()
 
-    def get_days(self):
-        """Get date strings for last five days"""
-        week = []
-        i = 0
-        while i < 5:
-            now = gmtime(mktime(gmtime()) - 86400 * i)
-            week.append("%s-%02d-%02d" % (now[0], now[1], now[2]))
-            i += 1
-        return week
+    @cherrypy.expose
+    def index(self, verbose = None):
+        """Main index.html page"""
+        #verbose=1 will show you sql id's for debugging
 
-    def body(self, verbose, login):
         """Yields body html"""
+        #For debugging, seeing cookies etc:
         print cherrypy.request.headerMap
-        week = self.get_days()
+        week = utils.get_days()
         packages = Packages.select(OR(Packages.q.latestReleaseDate == week[0],
                                     Packages.q.latestReleaseDate == week[1],
                                     Packages.q.latestReleaseDate == week[2],
@@ -47,86 +44,18 @@ class MyServer(cptools.PositionalParametersAware):
                                     ))
         packages = packages.orderBy('latestReleaseDate').reversed()
         herds = Herds.select()
-        template = Template('''
-
-<table><tr>
-<td width="13%">
-<br><b>Herds </b><a href="/meatoo/add_herd">[+]</a>
-<br />
-#for $h in $herds
-<!-- <a href="/meatoo/$h.herd"> -->
-$h.herd
-<!-- </a> -->
-<a href="/meatoo/edit_herd/$h.herd"><img border=0 src="/meatoo/static/edit.gif"></a>
-<br />
-#end for
-</td>
-<td width="65%"><table><br><b>Latest:</b>
-#for $pkg in $packages
-    #if $pkg.latestReleaseDate == $week[0] or $pkg.latestReleaseDate == $week[1]
-        <tr class="alt">
-        <td>
-
-        #if $verbose
-            ($pkg.id)
-        #end if    
-
-        <b><a href="http://packages.gentoo.org/search/?sstring=%5E$pkg.packageName%24">
-        $pkg.portageCategory/$pkg.packageName-$pkg.portageVersion</a> [
-        <a class="nav" href="http://freshmeat.net/projects/$pkg.packageName/" title="Freshmeat Latest Release">$pkg.latestReleaseVersion</a> ]</b>
-        $pkg.latestReleaseDate 
-
-        <a class="nav" href="/meatoo/ignore/$pkg.id" title="Ignore this version of this package.">
-        <img border=0 src="/meatoo/static/edit.png" alt="Ignore"></a>
-        <a class="nav" href="/meatoo/add_known/$pkg.fmName" title="Edit Portage name">
-        <img border=0 src="/meatoo/static/edit.gif"></a>
-        <a class="nav" href="$pkg.urlHomepage" title="Project Homepage">
-        <img border=0 src="/meatoo/static/home.png"></a>
-
-        <a class="nav" href="http://freshmeat.net/redir/$pkg.packageName/$pkg.urlChangelog/url_changelog/" title="View ChangeLog">
-        <img border=0 src="/meatoo/static/changelog.gif" alt="changelog"></a>
-
-        </td></tr><tr><td><br>
-        $pkg.portageDesc
-        <br><br>
-        <b>Freshmeat description:</b><br>
-        $pkg.descShort<br><br>
-        <b>Maintainers:</b> $pkg.maintainerName<br><br></td></tr>
-    #end if
-#end for
-</table>
-</td>
-<td>
-<table>
-    #set $i = 0
-    #while $i < 5
-        <tr class="alt"><td colspan=3><b>$week[$i]</b></tr>
-        #for $pkg in $packages
-            #if $pkg.latestReleaseDate == $week[$i]
-                <tr><td>
-                <a href="http://packages.gentoo.org/search/?sstring=%5E$pkg.packageName%24">
-                $pkg.portageCategory/$pkg.packageName-$pkg.portageVersion</a> [
-                <a class="nav" href="http://freshmeat.net/projects/$pkg.packageName/" title="Freshmeat Latest Release">$pkg.latestReleaseVersion</a> ]
-        </td>
-
-        <td>
-        <a class="nav" href="/meatoo/ignore/$pkg.id" title="Ignore this version of this package.">
-        <img border=0 src="/meatoo/static/edit.png" alt="Ignore"></a>
-        <a class="nav" href="/meatoo/add_known/$pkg.fmName" title="Edit Portage name">
-        <img border=0 src="/meatoo/static/edit.gif"></a>
-        <a class="nav" href="$pkg.urlHomepage" title="Project Homepage">
-        <img border=0 src="/meatoo/static/home.png"></a>
-
-        <a class="nav" href="http://freshmeat.net/redir/$pkg.packageName/$pkg.urlChangelog/url_changelog/" title="View ChangeLog">
-        <img border=0 src="/meatoo/static/changelog.gif" alt="changelog"></a>
-                </td></tr>
-            #end if
-        #end for
-        #set $i += 1 
-    #end while
-</table></td></tr></table>
-        ''', [locals(), globals()])
-        return template.respond()
+        try:
+            my_herds = cherrypy.session['herds'].split(" ")
+        except:
+            my_herds = None
+        self._body_tmpl.herds = herds
+        self._body_tmpl.week = week
+        self._body_tmpl.my_herds = my_herds
+        self._body_tmpl.packages = packages
+        self._body_tmpl.verbose = verbose
+        yield header()
+        yield self._body_tmpl.respond()
+        yield footer()
 
     @cherrypy.expose
     def ignore_action(self, pn, ver):
@@ -273,42 +202,10 @@ $h.herd
             return
 
         packages = packages.orderBy('latestReleaseDate').reversed()
-
-        template = Template('''
-            <b>Search results for:</b> $srch
-            <p>Show <a href="/meatoo/search/short/$srch/$type">recent</a>
-            or <a href="/meatoo/search/long/$srch/$type">all</a> releases</p>
-            <table>
-            <tr> <th>Portage Name</th> <th>Portage Version</th>
-            <th>Freshmeat Version</th> <th>Freshmeat Release Date</th> 
-            <th>Maintainers</th></tr>
-
-            #for $pkg in $packages
-                <tr class="alt">
-                <td><a href="http://packages.gentoo.org/search/?sstring=%5E$pkg.packageName%24">
-                $pkg.portageCategory/$pkg.packageName</a>
-                <a class="nav" href="/meatoo/ignore/$pkg.id" title="Ignore this version of this package.">
-                <img border=0 src="/meatoo/static/edit.png" alt="Ignore"></a>
-
-                <a class="nav" href="/meatoo/add_known/$pkg.fmName" title="Edit Portage name">
-                <img border=0 src="/meatoo/static/edit.gif"></a>
-                <a class="nav" href="$pkg.urlHomepage" title="Project Homepage">
-                <img border=0 src="/meatoo/static/home.png"></a></td>
-                #if pkg.fmNewer
-                    <td class="hilite">$pkg.portageVersion</td>
-                #else
-                    <td>$pkg.portageVersion</td>
-                #end if
-                <td><a href="http://freshmeat.net/projects/$pkg.packageName/">$pkg.latestReleaseVersion</a>
-                <a class="nav" href="http://freshmeat.net/redir/$pkg.packageName/$pkg.urlChangelog/url_changelog/" title="changelog">
-                <img border=0 src="/meatoo/static/changelog.gif"></a>
-                </td><td>$pkg.latestReleaseDate</td>
-                <td>$pkg.maintainerName</td>
-                </tr>
-            #end for
-            </table>
-            ''', [locals(), globals()])
-        yield template.respond()
+        self._search_tmpl.srch = srch
+        self._search_tmpl.type = type
+        self._search_tmpl.packages = packages
+        yield self._search_tmpl.respond()
 
     def add_known_form(self, pn):
         """Generate form for adding known-goods"""
@@ -319,24 +216,22 @@ $h.herd
             fullName = "No matches found!"
 
         template = Template('''
-            <b>Edit Portage name for:</b> $pn
-            <table>
-            <tr> <th>Existing match</th> <th>New package category</th> <th>New package name</tr>
+        <b>Edit Portage name for:</b> $pn
+        <table>
+        <tr> <th>Existing match</th> <th>New package category</th> <th>New package name</tr>
 
-            <tr class="alt">
-            <td>$fullName </td>
-            <td>
-            <form name='add_known' action="/meatoo/known_submit" method=post>
-            <input type='input' name='new_cat' value=""></td>
-            <td><input type='input' name='new_pn' value=""></td>
-            <input type='hidden' name='fmpn' value="$pn">
-            </tr>
-            </table>
-            <center><input type='submit' value="Submit"></center>
-            </form>
-            ''', [locals(), globals()])
-        return template.respond()
-    
+        <tr class="alt">
+        <td>$fullName </td>
+        <td>
+        <form name='add_known' action="/meatoo/known_submit" method=post>
+        <input type='input' name='new_cat' value=""></td>
+        <td><input type='input' name='new_pn' value=""></td>
+        <input type='hidden' name='fmpn' value="$pn">
+        </tr>
+        </table>
+        <center><input type='submit' value="Submit"></center>
+        </form>''', [locals(), globals()])
+
     @cherrypy.expose
     @needsLogin
     def add_known(self, pn, *args, **kwargs):
@@ -395,11 +290,12 @@ $h.herd
     @needsLogin
     def add_herd(self, *args, **kwargs):
         """Add a herd"""
-        yield header()
+        yield header_top()
         template = Template ('''
+            <table class="admin"><tr><td>
              <form method="post" action="/meatoo/process_herd/add">
              <div>
-              <h3>Add a herd</h3>
+              <h1 class="admin">Add a herd</h1>
               Currently only Gentoo developers can modify herd info.<br /><br />
               <div>
                <label for="herd" size="10">Herd name:</label>
@@ -408,7 +304,7 @@ $h.herd
               </div></div><div><br />
                <input type="submit" value="Add" />
               </div>
-             </form>''')
+             </form></td></tr></table>''')
         yield template.respond()
         yield footer()
 
@@ -468,57 +364,41 @@ $h.herd
     @cherrypy.expose
     @needsLogin
     def options(self, *args, **kwargs):
-        yield header()
-        yield "<h1>Options</h1>"
-        yield "Change password<br>"
-        yield "Lost password<br>"
+        yield header_top()
+        yield "<table class='admin'><tr><td><h1 class='admin'>Options</h1>"
+        yield "<a href='/meatoo/change_passwd'>Change password<br></a>"
+        yield "<a href='/meatoo/lost_passwd'>Lost your password?<br></a>"
+        yield "</td></tr></table>"
         yield footer()
 
     @cherrypy.expose
     @needsLogin
     def login(self, *args, **kwargs):
         """Go to front page if login succeeds."""
+        self.set_herd_session()
         httptools.redirect("/")
 
-    def logout(self):
-        yield header()
-        cherrypy.session['userid'] = None
-        httptools.redirect("/")
-        yield footer()
-    
+    def set_herd_session(self):
+        """Set session var with herds user belongs to"""
+        username = accounts.get_logged_username()
+        if username:
+            herds = " ".join(get_dev_herds(username))
+            cherrypy.session['herds'] = herds
+        else:
+            cherrypy.session['herds'] = None
+
     @cherrypy.expose
-    def index(self, verbose = None, login = None):
-        """Main index.html page"""
-        yield header()
-        #verbose=1 will show you sql id's for debugging
-        yield self.body(verbose, login)
-        yield footer()
-
+    def logout(self):
+        """Logout and goto / """
+        cherrypy.session['userid'] = None
+        cherrypy.session['herds'] = None
+        httptools.redirect("/")
+    
     @cherrypy.expose
     def rss(self, herd = ""):
         """Generate dynamic RSS feed"""
         if not herd:
             return """No herd specified."""
         packages = Packages.select(LIKE(Packages.q.maintainerName, '%' +  herd + '%') )
-        if not packages.count():
-            return """<?xml version="1.0" encoding="iso-8859-1"?><rss version="2.0"><channel><title>Meatoo - Gentoo vs. Freshmeat Releases</title><link>http://www.gentooexperimental.org/meatoo</link><description>The latest Freshmeat releases with matching Gentoo versions.</description><lastBuildDate>%s</lastBuildDate><generator>PyRSS2Gen-0.1.1</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Herd %s has no entries.</title><link>http://gentooexperimental.org/meatoo/</link><description>There are no entries for %s</description><pubDate>%s</pubDate></item></channel></rss>""" % (datetime.datetime.utcnow(), herd, herd, datetime.datetime.utcnow())
-
-        items = []
-        for pkg in packages:
-            items.append(PyRSS2Gen.RSSItem(
-                title = "%s/%s-%s [%s]" % \
-                    (pkg.portageCategory, pkg.packageName, pkg.portageVersion, \
-                     pkg.latestReleaseVersion),
-                description = "Freshmeat Release Date: %s<br><br><b>Portage desc:</b><br> %s<br><br><b>Freshmeat desc:</b><br> %s<br>http://freshmeat.net/projects/%s/" % (pkg.latestReleaseDate, pkg.portageDesc, pkg.descShort, pkg.packageName),
-                link = "http://gentooexperimental.org/meatoo/",
-                pubDate = datetime.datetime.utcnow()
-                ))
-
-        rss = PyRSS2Gen.RSS2(
-            title = "Meatoo - Gentoo vs. Freshmeat Releases",
-            link = "http://www.gentooexperimental.org/meatoo",
-            description = "The latest Freshmeat releases with matching Gentoo versions.",
-            lastBuildDate = datetime.datetime.utcnow(),
-            items = items)
-        return rss.to_xml()
+        utils.generate_rss(packages)
 
