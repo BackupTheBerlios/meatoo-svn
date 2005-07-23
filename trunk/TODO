@@ -1,7 +1,7 @@
 
 TODO:
 
-(Ok, guess we could file bug reports on these.)
+(Ok, guess we could start filing bug reports on these.)
 
 
 General:
@@ -11,15 +11,12 @@ General:
 
 Website:
 
-* Authorization system for gentoo developers. (Rob)
 * Subscription service to mail new pkg info by herd/maintainer. (Rob)
+  (This won't get done till we move to host with smtp server)
 * Add username to table when someone edits/ignores a package. (Rob)
 * stu's blog functionality. (RL)
 * per-pkg regexps to compare versions.(RL)
 * check per-pkg URLs (homepages) for version numbers. (RL)
-* Add widget to filter all pkgs or just ones with newer fm vers
-* Create a better header with a logo.
-
 
 me2dload.py:
 
