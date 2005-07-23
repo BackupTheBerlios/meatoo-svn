@@ -15,6 +15,8 @@ import accounts
 import herds
 import cherrypy
 
+from meatoodb import *
+
 
 def get_dload_size(url):
     """Returns int size in bytes of file for given url"""
@@ -35,11 +37,12 @@ def set_herd_session():
     """Set session var with herds user belongs to"""
     username = accounts.get_logged_username()
     if username:
-        my_herds = " ".join(herds.get_dev_herds(username))
-        cherrypy.session['herds'] = my_herds
+        user = Users.select(Users.q.user == username)
+        herds = user[0].herdsAuto + " " + user[0].herdsUser
+        cherrypy.session['herds'] = herds
     else:
         cherrypy.session['herds'] = None
-
+            
 def generate_rss(packages, herd):
     """Return dynamic RSS feed for given packages"""
     if not packages.count():

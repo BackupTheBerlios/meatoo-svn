@@ -25,6 +25,7 @@ import PyRSS2Gen
 import portage
 
 from meatoodb import *
+import herds
 
 
 FM_DICT = "/var/tmp/meatoo/fmdb"
@@ -220,15 +221,20 @@ def update_sql(desc, my_fm, cat, pn, pv, maints, higher):
         print "NEW", true_pn, my_fm['latestReleaseDate'], pv, my_fm['latestReleaseVersion']
         my_rss.new_item(true_cat, true_pn, pv, my_fm['latestReleaseVersion'], desc, my_fm['descShort'], my_fm['latestReleaseDate'])
 
-
+def store_herds():
+    """Store herds of each registered dev in the db"""
+    for dev in Users.select():
+        dev.set(herdsAuto = " ".join(herds.get_dev_herds(dev.user)))
 
 if __name__ == '__main__':
 
     optParser = optparse.OptionParser()
     optParser.add_option( "-u", action="store_true", dest="update", default=False,
-                            help="Update sql database.")
+                            help="Update database of packages.")
     optParser.add_option( "-r", action="store_true", dest="rss", default=False,
                             help="Write static RSS file.")
+    optParser.add_option( "-d", action="store_true", dest="herds", default=False,
+                            help="Update database of herds.")
     options, remainingArgs = optParser.parse_args()
     if len(sys.argv) == 1:
         optParser.print_help()
@@ -243,4 +249,5 @@ if __name__ == '__main__':
     if options.rss:
         my_rss.write_rss()
         #print len(fm.keys())
-
+    if options.herds:
+        store_herds()

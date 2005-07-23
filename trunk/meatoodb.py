@@ -89,7 +89,9 @@ class Users(SQLObject):
 
     _connection = conn
     _columns = [StringCol('user', length=32, notNull=1),
-                StringCol('password', length=32, notNull=1)
+                StringCol('password', length=32, notNull=1),
+                StringCol('herdsAuto', length=254, notNull=1),
+                StringCol('herdsUser', length=254, notNull=1)
                ]
     
 class Herds(SQLObject):
