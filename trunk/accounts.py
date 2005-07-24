@@ -29,7 +29,8 @@ def get_user_passwd(username):
 def add_user(username, passwd):
     """Add new user to db"""
     herdsAuto = " ".join(herds.get_dev_herds(username))
-    new_user = Users( user = username, password = passwd, herdsAuto = herdsAuto, herdsUser = "")
+    new_user = Users(user = username, password = passwd,
+                     herdsAuto = herdsAuto, herdsUser = "")
 
 def get_password():
     """Return random password"""

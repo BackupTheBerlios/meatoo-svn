@@ -163,7 +163,11 @@ class MyServer(cptools.PositionalParametersAware):
         tempFile.write(mail)
         tempFile.close()
         accounts.add_user(username, password)
-        os.system('/usr/bin/nbsmtp < %s &' % tfname)
+        os.system('/usr/bin/nbsmtp -V < %s' % tfname)
+        try:
+            os.unlink(tfname)
+        except:
+            print "CRITICAL - failed to delete tmpfile", tfname
         yield """Your password has been emailed."""
         yield footer()
 
@@ -439,6 +443,24 @@ class MyServer(cptools.PositionalParametersAware):
         cherrypy.session['herds'] = None
         httptools.redirect("/")
     
+    @needsLogin
+    def lost_passwd(self, *args, **kwargs):
+        yield header_top()
+        yield """<table class='admin'><tr><td>"""
+        yield "Click <a href='/meatoo/lost_passwd_confirm'>here</a> to mail password."
+        yield """</td></tr></table>"""
+        yield footer()
+
+    @needsLogin
+    def lost_passwd_confirm(self, *args, **kwargs):
+        yield header_top()
+        username = accounts.get_logged_username()
+        utils.mail_passwd(username)
+        yield """<table class='admin'><tr><td>"""
+        yield """Password mailed. Go <a href='/meatoo'>home.</a>"""
+        yield """</td></tr></table>"""
+        yield footer()
+
     @needsLogin
     def change_passwd(self, *args, **kwargs):
         yield header_top()
