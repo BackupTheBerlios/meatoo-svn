@@ -10,6 +10,7 @@ import urllib
 from time import *
 import datetime
 import os
+import tempfile
 
 import PyRSS2Gen
 import accounts
@@ -20,27 +21,22 @@ from meatoodb import *
 
 
 def mail_passwd(username):
-    yield header_top()
-    yield "<table class='admin'><tr><td>"
     password = accounts.get_user_passwd(username)
     mail = '''Date: %s\n''' % datetime.datetime.now()
     mail += '''To: <%s>\n''' % "%s@gentoo.org" % username
     mail += '''From: "Meatoo Admin" <gentooexp@gmail.com>\n'''
-    mail += '''Subject: Lost Meatoo password.\n\n'''
+    mail += '''Subject: Your lost Meatoo password.\n\n'''
     mail += '''Tsk tsk!\n\n'''
     mail += '''Your password is: %s\n''' % password
     tfname = tempfile.mktemp()
     tempFile = open(tfname, "w")
     tempFile.write(mail)
     tempFile.close()
-    os.system('/usr/bin/nbsmtp < %s' % tfname)
-    yield """Your password has been emailed."""
-    yield """</td></tr></table>"""
+    os.system('/usr/bin/nbsmtp -V < %s' % tfname)
     try:
         os.unlink(tfname)
     except:
-        pass
-    yield footer()
+        print "WARNING - tmpfile not deleted - ", tfname
 
 def get_dload_size(url):
     """Returns int size in bytes of file for given url"""
