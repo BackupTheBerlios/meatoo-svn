@@ -18,6 +18,11 @@ from meatoodb import *
 from auth import *
 
 class exposed(type):
+
+   """Metaclass for exposing all methods. Only put methods
+      in MeatooServer you want exposed. All else go in utils.py
+      or other specific places such as herds.py etc."""
+
    def __init__(cls, name, bases, dict):
       super(exposed, cls).__init__(name, bases, dict)
       for name, value in dict.iteritems():
@@ -414,7 +419,7 @@ class MyServer(cptools.PositionalParametersAware):
         yield header_top()
         yield "<table class='admin'><tr><td><h1 class='admin'>Options</h1>"
         yield "<a href='/meatoo/change_passwd'>Change password<br></a>"
-        yield "<a href='/meatoo/lost_passwd'>Lost your password?<br></a>"
+        yield "<a href='/meatoo/lost_passwd'>Lost your password?</a>"
         yield "</td></tr></table>"
         yield footer()
 

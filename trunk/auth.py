@@ -68,7 +68,6 @@ def loginPage(targetPage, message=None):
     result.append(sections.header_top())
     result.append('<table class="admin"><tr><td>')
     result.append('<h1 class="admin">Login</h1>')
-    result.append('<br><a href="/meatoo/signup">New account</a><br><br>')
     if message is not None:
         result.append('<p>%s</p>' % message)
     result.append('<form action=/meatoo%s method=post>' % targetPage)
@@ -76,6 +75,8 @@ def loginPage(targetPage, message=None):
     result.append('<p>Password: <input type=password name="loginPassword"></p>')
     result.append('<p><input type="submit" name="login" value="Log In"></p>')
     result.append('</form>')
+    result.append('<br><a href="/meatoo/signup">New account</a><br><br>')
+    result.append("<a href='/meatoo/lost_passwd'>Lost your password?</a>")
     result.append('</td></tr></table>')
     result.append(sections.footer())
     return '\n'.join(result)
