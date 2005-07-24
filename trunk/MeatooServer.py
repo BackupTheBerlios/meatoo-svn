@@ -16,7 +16,6 @@ import templates
 from sections import *
 from meatoodb import *
 from auth import *
-from herds import *
 
 class exposed(type):
    def __init__(cls, name, bases, dict):
@@ -55,6 +54,14 @@ class MyServer(cptools.PositionalParametersAware):
             my_herds = cherrypy.session['herds'].split(" ")
         except:
             my_herds = None
+        
+        try:
+            troves = cherrypy.session['troves'].split(" ")
+        except:
+            troves = None
+
+        self._body_tmpl.troves = troves
+        self._body_tmpl.username = accounts.get_logged_username()
         self._body_tmpl.herds = herds
         self._body_tmpl.week = week
         self._body_tmpl.my_herds = my_herds
@@ -282,12 +289,6 @@ class MyServer(cptools.PositionalParametersAware):
         yield """<b>Success!</b> Go <a href="/meatoo">home</a>"""
         yield footer()
         
-    def show_herds(self, *args, **kwargs):
-        """Show form for adding and editing herds and troves"""
-        yield header()
-        yield list_herds()
-        yield footer()
-        
     @needsLogin
     def add_user_herd(self, *args, **kwargs):
         """Add user's herd"""
@@ -349,20 +350,20 @@ class MyServer(cptools.PositionalParametersAware):
         template = Template('''<b>Success.</b> Go <a href="/meatoo">home</a>''')
         yield template.respond()
         yield footer()
-    
+   
     @needsLogin
-    def add_herd(self, *args, **kwargs):
-        """Add a herd"""
+    def add_user_trove(self, *args, **kwargs):
+        """Add user's trove"""
         yield header_top()
         template = Template ('''
             <table class="admin"><tr><td>
-             <form method="post" action="/meatoo/process_herd/add">
+             <form method="post" action="/meatoo/process_user_trove">
              <div>
-              <h1 class="admin">Add a herd</h1>
-              Currently only Gentoo developers can modify herd info.<br /><br />
+              <h1 class="admin">Add a trove</h1>
+              <br /><p>Consult the Freshmeat <a href="http://freshmeat.net/browse/18/">list</a> of sub-categories. The number at the end of the URL is the trove number.</p>
               <div>
-               <label for="herd" size="10">Herd name:</label>
-               <input type="text" id="herd" name="herd" class="textwidget" size="30"
+               <label for="trove" size="10">Trove number:</label>
+               <input type="text" id="trove" name="trove" class="textwidget" size="30"
                       value="" />
               </div></div><div><br />
                <input type="submit" value="Add" />
@@ -371,55 +372,43 @@ class MyServer(cptools.PositionalParametersAware):
         yield template.respond()
         yield footer()
 
-    @needsLogin
-    def edit_herd(self, herd, *args, **kwargs):
-        """Edit a herd"""
-        try:
-            h = Herds.select(Herds.q.herd == herd)
-        except:
-            yield "Failed to connect to db"
-            return
-        yield header()
+    def del_user_trove(self, trove):
+        """Delete user's trove"""
         
-        template = Template ('''
-             <form method="post" action="/meatoo/process_herd/edit">
-             <div>
-              <h3>Edit a herd</h3>
-              Currently only Gentoo developers can modify herd info.<br /><br />
-              <div>
-               <table><th>Herd Name:</th> <th>Troves:</th>
-               #for $herds in $h 
-                <tr><td><input type="text" id="herd" name="herd" class="textwidget" size="30" value="$herds.herd" /></td>
-               <td><input type="text" id="trove" name="trove" class="textwidget" size="30" value="$herds.trove" />
-               <input type="hidden" id="old_herd" name="old_herd" value="$herd" /></td></tr>
-               #end for
-               </table>
-              </div></div><div><br />
-               <input type="submit" value="Add" />
-              </div>
-             </form>
-            ''', [locals(), globals()])
+        username = accounts.get_logged_username()
+        u = Users.select(Users.q.user == username)
+        if trove in u[0].troves:
+            s = u[0].troves.split()
+            s.remove(trove)
+            if s:
+                u[0].set(troves = " ".join(s))
+            else:
+                u[0].set(troves = "")
+        else: #weird
+            yield self.error_form ("Couldn't find that trove in your list of troves")
+            return
+
+        utils.set_troves_session()
+        yield header_top()
+        template = Template('''<b>Success.</b> Go <a href="/meatoo">home</a>''')
         yield template.respond()
         yield footer()
-        
+
     @needsLogin
-    def process_herd(self, action, herd, trove="", old_herd="", *args, **kwargs):
-        """Process add/edit herd request. Action is add or edit"""
-        yield header()
-        if action == "add":
-            h = Herds.select(Herds.q.herd == herd)
-            if h.count():
-                yield "Herd with that name already exists"
-            else:
-                yield do_add(herd)
-        elif action == "edit":
-            h = Herds.select(Herds.q.herd == old_herd)
-            if not h.count():
-                yield "No such herd"
-            else:
-                yield do_edit(herd, trove, old_herd)
+    def process_user_trove(self, trove, *args, **kwargs):
+        """Process add user trove request."""
+        
+        username = accounts.get_logged_username()
+        h = Users.select(Users.q.user == username)
+        if h[0].troves:
+            h[0].set(troves = h[0].troves + " " + trove)
         else:
-            yield "Wrong action"
+            h[0].set(troves = trove)
+        utils.set_troves_session()
+
+        yield header_top()
+        template = Template('''<b>Success.</b> Go <a href="/meatoo">home</a>''')
+        yield template.respond()
         yield footer()
 
     @needsLogin
@@ -435,12 +424,14 @@ class MyServer(cptools.PositionalParametersAware):
     def login(self, *args, **kwargs):
         """Go to front page if login succeeds."""
         utils.set_herd_session()
+        utils.set_troves_session()
         httptools.redirect("/")
 
     def logout(self):
         """Logout and goto / """
         cherrypy.session['userid'] = None
         cherrypy.session['herds'] = None
+        cherrypy.session['troves'] = None
         httptools.redirect("/")
     
     @needsLogin

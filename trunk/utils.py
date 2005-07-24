@@ -66,6 +66,19 @@ def set_herd_session():
         cherrypy.session['herds'] = herds
     else:
         cherrypy.session['herds'] = None
+
+def set_troves_session():
+    """Set session var with troves user is interested in"""
+    username = accounts.get_logged_username()
+    if username:
+        user = Users.select(Users.q.user == username)
+        troves = user[0].troves
+        if troves:
+            cherrypy.session['troves'] = troves
+        else:
+            cherrypy.session['troves'] = None
+    else:
+        cherrypy.session['troves'] = None
             
 def generate_rss(packages, herd):
     """Return dynamic RSS feed for given packages"""

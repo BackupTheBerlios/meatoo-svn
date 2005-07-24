@@ -91,20 +91,12 @@ class Users(SQLObject):
     _columns = [StringCol('user', length=32, notNull=1),
                 StringCol('password', length=32, notNull=1),
                 StringCol('herdsAuto', length=254, notNull=1),
-                StringCol('herdsUser', length=254, notNull=0)
+                StringCol('herdsUser', length=254, notNull=0),
+                StringCol('troves', length=254, notNull=0)
                ]
     
-class Herds(SQLObject):
-    """Contains herds and associated trove ids"""
-
-    _connection = conn
-    _columns = [StringCol('herd', length=32, notNull=1),
-                StringCol('trove', length=32, notNull=1)
-               ]
-
 
 Packages.createTable(ifNotExists = True)
 Ignores.createTable(ifNotExists = True)
 KnownGood.createTable(ifNotExists = True)
 Users.createTable(ifNotExists = True)
-Herds.createTable(ifNotExists = True)

@@ -10,15 +10,19 @@
     <br>
 #end for
 #end if
-<br><b>All Herds </b><a href="/meatoo/add_herd">[+]</a>
+#if $username
+<br><b>My Troves</b><a href="/meatoo/add_user_trove">[+]</a>
+#end if
+#if $troves
 <br />
-#for $h in $herds
-<!-- <a href="/meatoo/$h.herd"> -->
-$h.herd
+#for $t in $troves
+<!-- <a href="/meatoo/show_trove/$t"> -->
+$t
 <!-- </a> -->
-<a href="/meatoo/edit_herd/$h.herd"><img border=0 src="/meatoo/static/edit.gif"></a>
+<a href="/meatoo/del_user_trove/$t"><img border=0 src="/meatoo/static/delete.png"></a>
 <br />
 #end for
+#end if
 </td>
 <td width="55%"><table><br><b>Latest:</b>
 #for $pkg in $packages
