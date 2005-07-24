@@ -49,7 +49,6 @@ class MyServer(cptools.PositionalParametersAware):
                                     Packages.q.latestReleaseDate == week[4]
                                     ))
         packages = packages.orderBy('latestReleaseDate').reversed()
-        herds = Herds.select()
         try:
             my_herds = cherrypy.session['herds'].split(" ")
         except:
@@ -62,7 +61,6 @@ class MyServer(cptools.PositionalParametersAware):
 
         self._body_tmpl.troves = troves
         self._body_tmpl.username = accounts.get_logged_username()
-        self._body_tmpl.herds = herds
         self._body_tmpl.week = week
         self._body_tmpl.my_herds = my_herds
         self._body_tmpl.packages = packages
