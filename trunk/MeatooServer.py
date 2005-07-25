@@ -116,6 +116,7 @@ class MyServer(cptools.PositionalParametersAware):
         yield self._body_tmpl.respond()
         yield footer()
 
+    @needsLogin
     def ignore_action(self, pn, ver):
         """Process ignore form"""
         try:
@@ -303,6 +304,7 @@ class MyServer(cptools.PositionalParametersAware):
               </div>'''
         yield self.plain_page(content)
 
+    @needsLogin
     def del_user_herd(self, herd):
         """Delete user's herd"""
         username = accounts.get_logged_username()
@@ -360,6 +362,7 @@ class MyServer(cptools.PositionalParametersAware):
               </div>'''
         yield self.plain_page(content)
 
+    @needsLogin
     def del_user_trove(self, trove):
         """Delete user's trove"""
         
@@ -426,7 +429,7 @@ class MyServer(cptools.PositionalParametersAware):
     def lost_passwd_confirm(self, *args, **kwargs):
         username = accounts.get_logged_username()
         utils.mail_passwd(username)
-        content = """Password mailed. Go <a href='/meatoo'>home.</a>"""
+        content = """Password mailed.<br><br>Go <a href='/meatoo'>home.</a>"""
         yield self.plain_page(content)
 
     @needsLogin
