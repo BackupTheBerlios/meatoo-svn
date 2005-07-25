@@ -117,33 +117,21 @@ class MyServer(cptools.PositionalParametersAware):
         yield footer()
 
     @needsLogin
-    def ignore_action(self, pn, ver):
-        """Process ignore form"""
-        try:
-            pkg = Packages.select(AND(Packages.q.packageName == pn, \
-                                  Packages.q.latestReleaseVersion == ver))
-            pkg[0].destroySelf()
-            if self.verbose:
-                print "Deleted match:", pn
-        except:
-            pass
-        ignore = Ignores(packageName = pn, latestReleaseVersion = ver)
-        content = pn + "-" +  ver + " ignored.<br><br>Go <a href='/meatoo'>back</a>"
-        yield self.plain_page(content)
-
-    @needsLogin
     def ignore(self, id, *args, **kwargs):
         """Ignore particular version of pkg"""
         pkg = Packages.get(id)
         template = Template('''
             <form method="get" action="/meatoo/ignore_action/">
             <div>
-            <h3>Ignore $pkg.packageName</h3>
-            <br>This will ignore this particular freshmeat release version, not the entire pacakge.</b><br><br>
+            <b>Ignore version $pkg.latestReleaseVersion of $pkg.packageName</b>
+            <br>
+            <br>This will ignore this particular freshmeat release version,
+            <b>not</b> the entire pacakge.</b><br><br>
             Freshmeat Release Date: $pkg.latestReleaseDate<br><br>
             <a href="http://packages.gentoo.org/search/?sstring=%5E$pkg.packageName%24">
             $pkg.portageCategory/$pkg.packageName-$pkg.portageVersion</a> [
-            <a class="nav" href="http://freshmeat.net/projects/$pkg.packageName/" title="Freshmeat Latest Release">$pkg.latestReleaseVersion</a> ]
+            <a class="nav" href="http://freshmeat.net/projects/$pkg.packageName/"
+            title="Freshmeat Latest Release">$pkg.latestReleaseVersion</a> ]
             </div><div><br />
             <input type="submit" value="Ignore" />
             <input type='hidden' name='pn' value='$pkg.packageName'>
@@ -154,6 +142,24 @@ class MyServer(cptools.PositionalParametersAware):
         content = template.respond()
         yield self.plain_page(content)
 
+    @needsLogin
+    def ignore_action(self, pn, ver):
+        """Process ignore form"""
+        try:
+            pkg = Packages.select(AND(Packages.q.packageName == pn,
+                                  Packages.q.latestReleaseVersion == ver))
+            pkg[0].destroySelf()
+            if self.verbose:
+                print "Deleted match:", pn
+        except:
+            pass
+        ignore = Ignores(packageName = pn, latestReleaseVersion = ver)
+        template = Template('''Freshmeat version $ver of $pn ignored.
+                                <br><br>Go <a href='/meatoo'>back</a>''',
+                                [locals(), globals()])
+        content = template.respond()
+        yield self.plain_page(content)
+
     def signup(self):
         """New account signup form"""
         content = '''
@@ -161,11 +167,12 @@ class MyServer(cptools.PositionalParametersAware):
              <div>
               <h1 class="admin">New Account</h1>
               <table class="admin"><tr><td>
-              Currently only Gentoo developers can signup to edit Meatoo entries.<br><br>
+              Currently only Gentoo developers can signup to edit Meatoo
+              entries.<br><br>
               <div>
                <label for="email">Email:</label>
-               <input type="text" id="address" name="address" class="textwidget" size="30"
-                      value="" />
+               <input type="text" id="address" name="address" 
+                    class="textwidget" size="30" value="" />
               </div></div><div><br />
                <input type="submit" value="Register" />
               </div>
@@ -183,32 +190,29 @@ class MyServer(cptools.PositionalParametersAware):
         yield header()
         if length == "short":
             if type == 'herd':
-                packages = Packages.select(AND \
-                            (LIKE(Packages.q.maintainerName, \
-                             '%' +  srch + '%'), \
+                packages = Packages.select(AND(LIKE(Packages.q.maintainerName,
+                             '%' +  srch + '%'),
                              Packages.q.fmNewer==1))
             elif type == 'pn':
-                packages = Packages.select(AND \
-                            (LIKE(Packages.q.packageName, \
-                             '%' + srch + '%'), \
+                packages = Packages.select(AND(LIKE(Packages.q.packageName,
+                             '%' + srch + '%'),
                              Packages.q.fmNewer==1))
             elif type == "cat":
-                packages = Packages.select(AND \
-                            (LIKE(Packages.q.portageCategory, \
-                             '%' + srch + '%'), \
+                packages = Packages.select(AND(LIKE(Packages.q.portageCategory,
+                             '%' + srch + '%'),
                              Packages.q.fmNewer==1))
             else:
                 yield "<b>Nothing found for:</b> %s" % srch
         elif length == "long":
             if type == 'herd':
-                packages = Packages.select(LIKE \
-                            (Packages.q.maintainerName, '%' +  srch + '%') )
+                packages = Packages.select(LIKE(Packages.q.maintainerName,
+                            '%' +  srch + '%') )
             elif type == 'pn':
-                packages = Packages.select(LIKE \
-                            (Packages.q.packageName, '%' + srch + '%'))
+                packages = Packages.select(LIKE(Packages.q.packageName,
+                            '%' + srch + '%'))
             elif type == "cat":
-                packages = Packages.select(LIKE \
-                            (Packages.q.portageCategory, '%' + srch + '%'))
+                packages = Packages.select(LIKE(Packages.q.portageCategory,
+                            '%' + srch + '%'))
             else:
                 yield "<b>Nothing found for:</b> %s" % srch
         else: # something weird
@@ -227,33 +231,34 @@ class MyServer(cptools.PositionalParametersAware):
         """Show form for editing known matches"""
         packages = KnownGood.select(KnownGood.q.fmName == pn )
         if packages.count():
-            fullName = packages[0].portageCategory + "/" + packages[0].packageName
+            fullName = "%s/%s" % (packages[0].portageCategory,
+                                  packages[0].packageName)
         else:
             fullName = "No matches found!"
         template = Template('''
-        <b>Edit Portage name for:</b> $pn
-        <table>
-        <tr> <th>Existing match</th> <th>New package category</th> <th>New package name</tr>
-
-        <tr class="alt">
-        <td>$fullName </td>
-        <td>
-        <form name='add_known' action="/meatoo/known_submit" method=post>
-        <input type='input' name='new_cat' value=""></td>
-        <td><input type='input' name='new_pn' value=""></td>
-        <input type='hidden' name='fmpn' value="$pn">
-        </tr>
-        </table>
-        <center><input type='submit' value="Submit"></center>
-        </form>''', [locals(), globals()])
+            <b>Edit Portage name for:</b> $pn
+            <br><br>
+            <table>
+            <tr> <th>Existing match</th> 
+            <th>New package category</th> <th>New package name</tr>
+            <tr class="alt">
+            <td>$fullName </td>
+            <td>
+            <form name='add_known' action="/meatoo/known_submit" method=post>
+            <input type='input' name='new_cat' value=""></td>
+            <td><input type='input' name='new_pn' value=""></td>
+            <input type='hidden' name='fmpn' value="$pn">
+            </tr>
+            </table>
+            <center><input type='submit' value="Submit"></center>
+            </form>''', [locals(), globals()])
         yield self.plain_page(template.respond())
 
     @needsLogin
     def known_submit(self, new_cat="", new_pn="", fmpn=""):
         """Add submitted known match to db"""
         if not new_pn or not new_cat:
-            # FIXME - these should really be a standard error form
-            yield "No package specified!"
+            yield self.error_form("No package specified!")
             return
         good = KnownGood.select(KnownGood.q.fmName == fmpn )
         if good.count():
@@ -262,8 +267,7 @@ class MyServer(cptools.PositionalParametersAware):
                 good[0].set(packageName = new_pn,
                     portageCategory = new_cat)
             except:
-                content = "Failed to update database!"
-                yield self.plain_page(content)
+                yield self.error_form("Failed to update database!")
                 return
         else:
             # add new known-good 
@@ -272,8 +276,7 @@ class MyServer(cptools.PositionalParametersAware):
                     portageCategory = new_cat,
                     fmName = fmpn)
            except:
-               content = "Failed to update database!"
-               yield self.plain_page(content)
+               yield self.error_form("Failed to update database!")
                return
 
         packages = Packages.select(Packages.q.fmName == fmpn )
@@ -281,8 +284,7 @@ class MyServer(cptools.PositionalParametersAware):
             packages[0].set(packageName = new_pn,
                     portageCategory = new_cat)
         except:
-            content = "Failed to update database!"
-            yield self.plain_page(content)
+            yield self.error_form("Failed to update database!")
             return
 
         content = "<b>Success!</b><br><br>Go <a href='/meatoo'>home</a>"
@@ -297,8 +299,8 @@ class MyServer(cptools.PositionalParametersAware):
               <h1 class="admin">Add a herd</h1>
               <div>
                <label for="herd" size="10">Herd name:</label>
-               <input type="text" id="herd" name="herd" class="textwidget" size="30"
-                      value="" />
+               <input type="text" id="herd" name="herd" class="textwidget"
+                size="30" value="" />
               </div></div><div><br />
                <input type="submit" value="Add" />
               </div>'''
@@ -310,7 +312,9 @@ class MyServer(cptools.PositionalParametersAware):
         username = accounts.get_logged_username()
         u = Users.select(Users.q.user == username)
         if herd in u[0].herdsAuto:
-            yield self.error_form("You are a member of that herd, which means you cannot delete it from your Meatoo preferences. Sorry.")
+            yield self.error_form('''You are a member of that herd,
+                                     which means you cannot delete it from your
+                                     Meatoo preferences. Sorry.''')
             return
         elif herd in u[0].herdsUser:
             s = u[0].herdsUser.split()
@@ -320,7 +324,7 @@ class MyServer(cptools.PositionalParametersAware):
             else:
                 u[0].set(herdsUser = "")
         else: #weird
-            yield self.error_form("Couldn't find that herd in your list of herds")
+            yield self.error_form("Couldn't find that herd in your list.")
             return
 
         utils.set_herd_session()
@@ -351,12 +355,13 @@ class MyServer(cptools.PositionalParametersAware):
              <div><h1 class="admin">Add a trove</h1>
               <br /><p>
               Consult the Freshmeat 
-              <a href="http://freshmeat.net/browse/18/">list</a> of sub-categories. 
-              The number at the end of the URL is the trove number.</p>
+              <a href="http://freshmeat.net/browse/18/">list</a>
+              of sub-categories. The number at the end of the URL is the
+              trove number.</p>
               <div>
                <label for="trove" size="10">Trove number:</label>
-               <input type="text" id="trove" name="trove" class="textwidget" size="30"
-                      value="" />
+               <input type="text" id="trove" name="trove"
+                 class="textwidget" size="30" value="" />
               </div></div><div><br />
                <input type="submit" value="Add" />
               </div>'''
@@ -376,7 +381,7 @@ class MyServer(cptools.PositionalParametersAware):
             else:
                 u[0].set(troves = "")
         else: #weird
-            yield self.error_form ("Couldn't find that trove in your list of troves")
+            yield self.error_form ("Couldn't find that trove in your list.")
             return
 
         utils.set_troves_session()
@@ -442,10 +447,14 @@ class MyServer(cptools.PositionalParametersAware):
         username = accounts.get_logged_username()
         password = accounts.get_user_passwd(username)
         if password != old_passwd:
-            yield self.error_form("Old password is incorrect.<br><br><a href='/meatoo/change_passwd'>Try again.</a>")
+            yield self.error_form('''Old password is incorrect.<br><br>
+                                     <a href='/meatoo/change_passwd'>
+                                     Try again.</a>''')
             return
         if new_passwd != confirm_passwd:
-            yield self.error_form("New passwords don't match.<br><br><a href='/meatoo/change_passwd'>Try again.</a>")
+            yield self.error_form('''New passwords don't match.<br><br>
+                                     <a href='/meatoo/change_passwd'>
+                                     Try again.</a>''')
             return
         if accounts.change_passwd(username, new_passwd):
             yield self.plain_page("<b>Password changed.</b>")
@@ -456,6 +465,7 @@ class MyServer(cptools.PositionalParametersAware):
         """Generate dynamic RSS feed"""
         if not herd:
             return """No herd specified."""
-        packages = Packages.select(LIKE(Packages.q.maintainerName, '%' +  herd + '%') )
+        packages = Packages.select(LIKE(Packages.q.maintainerName,
+                    '%' +  herd + '%') )
         utils.generate_rss(packages, herd)
 
