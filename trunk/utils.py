@@ -103,3 +103,21 @@ def generate_rss(packages, herd):
         items = items)
     return rss.to_xml()
 
+def get_cookie(self, name):
+    """Reads the value of a cookie"""
+    try:
+        return cherrypy.request.simpleCookie[name].value
+    except Exception:
+        return None
+
+def set_cookie(self, name, value, path='/', age=60, version=1):
+    """Sets a cookie, age in seconds"""
+    cherrypy.response.simpleCookie[name] = value
+    cherrypy.response.simpleCookie[name]['path']    = path
+    cherrypy.response.simpleCookie[name]['max-age'] = age
+    cherrypy.response.simpleCookie[name]['version'] = version
+
+def del_cookie(self, name):
+    """Deletes a cookie"""
+    cherrypy.response.simpleCookie[name]['expires']  = 0
+

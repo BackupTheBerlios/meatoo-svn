@@ -34,18 +34,29 @@ class MyServer(cptools.PositionalParametersAware):
     """Server class for meatoo"""
 
     __metaclass__ = exposed
-    def __init__(self, config):
+
+    def __init__(self, config, debug, verbose):
         cptools.PositionalParametersAware.__init__(self)
         self.config = config
+        self.debug = debug
+        self.verbose = verbose
         self._body_tmpl = templates.body()
         self._search_tmpl = templates.search()
         self._change_passwd_tmpl = templates.change_passwd()
+
+    #def _cpOnError():
+    #    """Enter pdb on tracebacks"""
+    #    import pdb
+    #    pdb.set_trace()
+    #    cherrypy._cputil._cpOnError()
+    #_cpOnError = staticmethod(_cpOnError)
 
     def index(self, verbose = None):
         """Main index.html page"""
         #verbose=1 will show you sql id's for debugging
         #For debugging, seeing cookies etc:
-        print cherrypy.request.headerMap
+        if self.verbose:
+            print cherrypy.request.headerMap
         week = utils.get_days()
         packages = Packages.select(OR(Packages.q.latestReleaseDate == week[0],
                                     Packages.q.latestReleaseDate == week[1],
@@ -80,7 +91,8 @@ class MyServer(cptools.PositionalParametersAware):
             pkg = Packages.select(AND(Packages.q.packageName == pn, \
                                   Packages.q.latestReleaseVersion == ver))
             pkg[0].destroySelf()
-            print "Deleted match:", pn
+            if self.verbose:
+                print "Deleted match:", pn
         except:
             pass
         ignore = Ignores(packageName = pn, latestReleaseVersion = ver)

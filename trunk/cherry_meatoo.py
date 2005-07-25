@@ -16,6 +16,7 @@ Contributor: Renat Lumpau
 """
 
 import ConfigParser
+import optparse
 
 import cherrypy
 
@@ -28,9 +29,22 @@ CONFIG = "./meatoo.conf"
 config = ConfigParser.ConfigParser()
 config.read(CONFIG)
 
-    
-cherrypy.root = MeatooServer.MyServer(config)
-cherrypy.root.xmlrpc = XMLServer.MyServer(config)
-cherrypy.config.update(file = './cherrypy.conf')
-cherrypy.server.start()
+
+if __name__ == '__main__':
+    optParser = optparse.OptionParser()
+    optParser.add_option("-d", action="store_true",
+                         dest="debug", default=False,
+                         help="Set debug level.")
+    optParser.add_option("-v", action="store_true",
+                         dest="verbose", default=False,
+                         help="Be more verboserer.")
+    options, remainingArgs = optParser.parse_args()
+    cherrypy.root = MeatooServer.MyServer(config,
+                                          options.debug,
+                                          options.verbose)
+    cherrypy.root.xmlrpc = XMLServer.MyServer(config,
+                                              options.debug,
+                                              options.verbose)
+    cherrypy.config.update(file = './cherrypy.conf')
+    cherrypy.server.start()
 

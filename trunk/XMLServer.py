@@ -10,8 +10,18 @@ import meatoodb
 class MyServer:
     """XML-RPC methods"""
 
-    def __init__(self, config):
+    def __init__(self, config, debug, verbose):
         self.config = config
+        self.debug = debug
+        self.verbose = verbose
+
+    #def _cpOnError():
+    #    """Enter pdb on tracebacks"""
+    #    if self.debug:
+    #        import pdb
+    #        pdb.set_trace()
+    #    cherrypy._cputil._cpOnError()
+    #_cpOnError = staticmethod(_cpOnError)
 
     def _parsePackages(self, pkgs):
         """Parse Packages into a list of lists"""
