@@ -9,7 +9,7 @@
 ##
 ## Author: Rikard Bosnjakovic <bos@hack.org>, 2001-06-12
 ##
-from whrandom import choice, randint
+from random import choice, randint
 
 # choose your dictionary
 dictionary_file = '/usr/lib/ispell/americanmed+.hash'
