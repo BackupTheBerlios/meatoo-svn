@@ -44,6 +44,8 @@ class MyServer(cptools.PositionalParametersAware):
         self._search_tmpl = templates.search()
         self._change_passwd_tmpl = templates.change_passwd()
 
+    #FIXME: Its tricky turning this on based on a config
+    #or optparser option. Any ideas?
     #def _cpOnError():
     #    """Enter pdb on tracebacks"""
     #    import pdb
@@ -79,6 +81,7 @@ class MyServer(cptools.PositionalParametersAware):
             print cherrypy.request.headerMap
         week = utils.get_days()
         
+        #FIXME: Show either pkgs needing bump or all fm pkgs
         #packages = Packages.select(AND(OR(Packages.q.latestReleaseDate == week[0],
         #                            Packages.q.latestReleaseDate == week[1],
         #                            Packages.q.latestReleaseDate == week[2],
@@ -394,12 +397,10 @@ class MyServer(cptools.PositionalParametersAware):
 
     @needsLogin
     def options(self, *args, **kwargs):
-        yield header_top()
-        yield "<table class='admin'><tr><td><h1 class='admin'>Options</h1>"
-        yield "<a href='/meatoo/change_passwd'>Change password<br></a>"
-        yield "<a href='/meatoo/lost_passwd'>Lost your password?</a>"
-        yield "</td></tr></table>"
-        yield footer()
+        content = """<h1 class='admin'>Options</h1>
+                     <a href='/meatoo/change_passwd'>Change password<br></a>
+                     <a href='/meatoo/lost_passwd'>Lost your password?</a>"""
+        yield self.plain_page(content)
 
     @needsLogin
     def login(self, *args, **kwargs):
@@ -417,27 +418,21 @@ class MyServer(cptools.PositionalParametersAware):
     
     @needsLogin
     def lost_passwd(self, *args, **kwargs):
-        yield header_top()
-        yield """<table class='admin'><tr><td>"""
-        yield "Click <a href='/meatoo/lost_passwd_confirm'>here</a> to mail password."
-        yield """</td></tr></table>"""
-        yield footer()
+        content = """Click <a href='/meatoo/lost_passwd_confirm'>here</a>
+                     to mail password."""
+        yield self.plain_page(content)
 
     @needsLogin
     def lost_passwd_confirm(self, *args, **kwargs):
-        yield header_top()
         username = accounts.get_logged_username()
         utils.mail_passwd(username)
-        yield """<table class='admin'><tr><td>"""
-        yield """Password mailed. Go <a href='/meatoo'>home.</a>"""
-        yield """</td></tr></table>"""
-        yield footer()
+        content = """Password mailed. Go <a href='/meatoo'>home.</a>"""
+        yield self.plain_page(content)
 
     @needsLogin
     def change_passwd(self, *args, **kwargs):
-        yield header_top()
-        yield self._change_passwd_tmpl.respond()
-        yield footer()
+        """Change password form"""
+        yield self.plain_page(self._change_passwd_tmpl.respond())
 
     @needsLogin
     def change_passwd_action(self, old_passwd, new_passwd, confirm_passwd, *args, **kwargs):
@@ -450,11 +445,7 @@ class MyServer(cptools.PositionalParametersAware):
             yield self.error_form("New passwords don't match.<br><br><a href='/meatoo/change_passwd'>Try again.</a>")
             return
         if accounts.change_passwd(username, new_passwd):
-            yield header_top()
-            yield "<table class='admin'><tr><td><h1 class='admin'>Change Passwd Results</h1>"
-            yield "<b>Password changed.</b>"
-            yield "</td></tr></table>"
-            yield footer()
+            yield self.plain_page("<b>Password changed.</b>")
         else:
             yield self.error_form("Error: Failed to change passwd.")
 
