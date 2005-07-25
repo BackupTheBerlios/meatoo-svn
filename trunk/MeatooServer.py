@@ -51,6 +51,26 @@ class MyServer(cptools.PositionalParametersAware):
     #    cherrypy._cputil._cpOnError()
     #_cpOnError = staticmethod(_cpOnError)
 
+    def plain_page(self, content):
+        """Generic page with plain header/footer"""
+        #FIXME: Use CSS and make this look nice
+        #Use compiled Cheetah template?
+        #Add header arg for titlebar etc.
+        yield header_top()
+        yield "<table class='admin'><tr><td>"
+        yield content
+        yield "</td></tr></table>"
+        yield footer()
+
+    def error_form(self, msg, *args, **kwargs):
+        """Standard error message form"""
+        #TODO: Add optional 'go back' url link
+        content = "<tr><td><h1 class='admin'>Error:</h1></td></tr>"
+        content += "<tr><td>"
+        content += msg
+        content += "</td></tr></table>"
+        yield self.plain_page(content)
+
     def index(self, verbose = None):
         """Main index.html page"""
         #verbose=1 will show you sql id's for debugging
@@ -58,6 +78,14 @@ class MyServer(cptools.PositionalParametersAware):
         if self.verbose:
             print cherrypy.request.headerMap
         week = utils.get_days()
+        
+        #packages = Packages.select(AND(OR(Packages.q.latestReleaseDate == week[0],
+        #                            Packages.q.latestReleaseDate == week[1],
+        #                            Packages.q.latestReleaseDate == week[2],
+        #                            Packages.q.latestReleaseDate == week[3],
+        #                            Packages.q.latestReleaseDate == week[4]
+        #                            ), Packages.q.fmNewer==0))
+
         packages = Packages.select(OR(Packages.q.latestReleaseDate == week[0],
                                     Packages.q.latestReleaseDate == week[1],
                                     Packages.q.latestReleaseDate == week[2],
@@ -96,12 +124,8 @@ class MyServer(cptools.PositionalParametersAware):
         except:
             pass
         ignore = Ignores(packageName = pn, latestReleaseVersion = ver)
-        yield header_top()
-        yield "<table class='admin'><tr><td>"
-        yield pn + "-" +  ver + " ignored.<br><br>"
-        yield "Go <a href='/meatoo'>back</a>"
-        yield "</td></tr></table>"
-        yield footer()
+        content = pn + "-" +  ver + " ignored.<br><br>Go <a href='/meatoo'>back</a>"
+        yield self.plain_page(content)
 
     @needsLogin
     def ignore(self, id, *args, **kwargs):
@@ -123,75 +147,31 @@ class MyServer(cptools.PositionalParametersAware):
             </div>
             </form>
         ''', [locals(), globals()])
-        yield header_top()
-        yield template.respond()
-        yield footer()
+        content = template.respond()
+        yield self.plain_page(content)
 
     def signup(self):
-        """Return search results"""
-        yield header_top()
-        yield '''
+        """New account signup form"""
+        content = '''
              <form method="get" action="/meatoo/signup_send/">
              <div>
-              <h1 class="admin">Meatoo Signup</h1>
+              <h1 class="admin">New Account</h1>
               <table class="admin"><tr><td>
               Currently only Gentoo developers can signup to edit Meatoo entries.<br><br>
               <div>
                <label for="email">Email:</label>
-               <input type="text" id="email" name="email" class="textwidget" size="30"
+               <input type="text" id="address" name="address" class="textwidget" size="30"
                       value="" />
               </div></div><div><br />
                <input type="submit" value="Register" />
               </div>
              </form>
-             </td></tr></table>
-        '''
-        yield footer()
+             </td></tr></table>'''
+        yield self.plain_page(content)
 
-
-    def error_form(self, msg, *args, **kwargs):
-        """Standard error message form"""
-        #TODO: Add optional 'go back' url link
-        yield header_top()
-        yield "<table class='admin'><tr><td><h1 class='admin'>Error:</h1></td></tr>"
-        yield "<tr><td><b>"
-        yield msg
-        yield "</b></td></tr></table>"
-        yield footer()
-
-    def signup_send(self, email, *args, **kwargs):
-        if "@" not in email:
-            yield self.error_form("Invalid email address.")
-            return
-        if email.split("@")[1] != "gentoo.org":
-            yield self.error_form("Only official Gentoo developers may register.")
-            return
-
-        yield header()
-        username = email.split("@")[0] 
-        password = accounts.get_password()
-        if accounts.get_user_passwd(username):
-            yield "You already have an account."
-            yield footer()
-            return
-        mail = '''Date: %s\n''' % datetime.datetime.now()
-        mail += '''To: <%s>\n''' % email
-        mail += '''From: "Meatoo Registration" <gentooexp@gmail.com>\n'''
-        mail += '''Subject: Meatoo is ready for you.\n\n'''
-        mail += '''You can now login to Meatoo and add, delete or modify entries.\n\n'''
-        mail += '''Your password is: %s\n''' % password
-        tfname = tempfile.mktemp()
-        tempFile = open(tfname, "w")
-        tempFile.write(mail)
-        tempFile.close()
-        accounts.add_user(username, password)
-        os.system('/usr/bin/nbsmtp -V < %s' % tfname)
-        try:
-            os.unlink(tfname)
-        except:
-            print "CRITICAL - failed to delete tmpfile", tfname
-        yield """Your password has been emailed."""
-        yield footer()
+    def signup_send(self, address, *args, **kwargs):
+        """Send generated password for new account to user"""
+        yield self.plain_page(utils.send_new_passwd(address))
 
     def search(self, length = "short", srch = "", type = ""):
         """Return search results page. length refers to verbosity. 
@@ -241,7 +221,6 @@ class MyServer(cptools.PositionalParametersAware):
     @needsLogin
     def add_known(self, pn, *args, **kwargs):
         """Show form for editing known matches"""
-        yield header_top()
         packages = KnownGood.select(KnownGood.q.fmName == pn )
         if packages.count():
             fullName = packages[0].portageCategory + "/" + packages[0].packageName
@@ -263,8 +242,7 @@ class MyServer(cptools.PositionalParametersAware):
         </table>
         <center><input type='submit' value="Submit"></center>
         </form>''', [locals(), globals()])
-        yield template.respond()
-        yield footer()
+        yield self.plain_page(template.respond())
 
     @needsLogin
     def known_submit(self, new_cat="", new_pn="", fmpn=""):
@@ -280,7 +258,8 @@ class MyServer(cptools.PositionalParametersAware):
                 good[0].set(packageName = new_pn,
                     portageCategory = new_cat)
             except:
-                yield "Failed to update database!"
+                content = "Failed to update database!"
+                yield self.plain_page(content)
                 return
         else:
             # add new known-good 
@@ -289,7 +268,8 @@ class MyServer(cptools.PositionalParametersAware):
                     portageCategory = new_cat,
                     fmName = fmpn)
            except:
-               yield "Failed to update database!"
+               content = "Failed to update database!"
+               yield self.plain_page(content)
                return
 
         packages = Packages.select(Packages.q.fmName == fmpn )
@@ -297,19 +277,17 @@ class MyServer(cptools.PositionalParametersAware):
             packages[0].set(packageName = new_pn,
                     portageCategory = new_cat)
         except:
-                yield "Failed to update database!"
-                return
+            content = "Failed to update database!"
+            yield self.plain_page(content)
+            return
 
-        yield header()
-        yield """<b>Success!</b> Go <a href="/meatoo">home</a>"""
-        yield footer()
+        content = "<b>Success!</b><br><br>Go <a href='/meatoo'>home</a>"
+        yield self.plain_page(content)
         
     @needsLogin
     def add_user_herd(self, *args, **kwargs):
         """Add user's herd"""
-        yield header_top()
-        template = Template ('''
-            <table class="admin"><tr><td>
+        content = '''
              <form method="post" action="/meatoo/process_user_herd">
              <div>
               <h1 class="admin">Add a herd</h1>
@@ -319,18 +297,15 @@ class MyServer(cptools.PositionalParametersAware):
                       value="" />
               </div></div><div><br />
                <input type="submit" value="Add" />
-              </div>
-             </form></td></tr></table>''')
-        yield template.respond()
-        yield footer()
+              </div>'''
+        yield self.plain_page(content)
 
     def del_user_herd(self, herd):
         """Delete user's herd"""
-        
         username = accounts.get_logged_username()
         u = Users.select(Users.q.user == username)
         if herd in u[0].herdsAuto:
-            yield self.error_form ("You are a member of that herd, which means you cannot delete it from your Meatoo preferences. Sorry.")
+            yield self.error_form("You are a member of that herd, which means you cannot delete it from your Meatoo preferences. Sorry.")
             return
         elif herd in u[0].herdsUser:
             s = u[0].herdsUser.split()
@@ -340,14 +315,12 @@ class MyServer(cptools.PositionalParametersAware):
             else:
                 u[0].set(herdsUser = "")
         else: #weird
-            yield self.error_form ("Couldn't find that herd in your list of herds")
+            yield self.error_form("Couldn't find that herd in your list of herds")
             return
 
         utils.set_herd_session()
-        yield header_top()
-        template = Template('''<b>Success.</b> Go <a href="/meatoo">home</a>''')
-        yield template.respond()
-        yield footer()
+        content = "<b>Success!</b><br><br>Go <a href='/meatoo'>home</a>"
+        yield self.plain_page(content)
 
     @needsLogin
     def process_user_herd(self, herd, *args, **kwargs):
@@ -361,31 +334,28 @@ class MyServer(cptools.PositionalParametersAware):
             h[0].set(herdsUser = herd)
         utils.set_herd_session()
 
-        yield header_top()
-        template = Template('''<b>Success.</b> Go <a href="/meatoo">home</a>''')
-        yield template.respond()
-        yield footer()
+        content = "<b>Success!</b><br><br>Go <a href='/meatoo'>home</a>"
+        yield self.plain_page(content)
    
     @needsLogin
     def add_user_trove(self, *args, **kwargs):
         """Add user's trove"""
-        yield header_top()
-        template = Template ('''
+        content = '''
             <table class="admin"><tr><td>
              <form method="post" action="/meatoo/process_user_trove">
-             <div>
-              <h1 class="admin">Add a trove</h1>
-              <br /><p>Consult the Freshmeat <a href="http://freshmeat.net/browse/18/">list</a> of sub-categories. The number at the end of the URL is the trove number.</p>
+             <div><h1 class="admin">Add a trove</h1>
+              <br /><p>
+              Consult the Freshmeat 
+              <a href="http://freshmeat.net/browse/18/">list</a> of sub-categories. 
+              The number at the end of the URL is the trove number.</p>
               <div>
                <label for="trove" size="10">Trove number:</label>
                <input type="text" id="trove" name="trove" class="textwidget" size="30"
                       value="" />
               </div></div><div><br />
                <input type="submit" value="Add" />
-              </div>
-             </form></td></tr></table>''')
-        yield template.respond()
-        yield footer()
+              </div>'''
+        yield self.plain_page(content)
 
     def del_user_trove(self, trove):
         """Delete user's trove"""
@@ -404,10 +374,8 @@ class MyServer(cptools.PositionalParametersAware):
             return
 
         utils.set_troves_session()
-        yield header_top()
-        template = Template('''<b>Success.</b> Go <a href="/meatoo">home</a>''')
-        yield template.respond()
-        yield footer()
+        content = "<b>Success!</b><br><br>Go <a href='/meatoo'>home</a>"
+        yield self.plain_page(content)
 
     @needsLogin
     def process_user_trove(self, trove, *args, **kwargs):
@@ -421,10 +389,8 @@ class MyServer(cptools.PositionalParametersAware):
             h[0].set(troves = trove)
         utils.set_troves_session()
 
-        yield header_top()
-        template = Template('''<b>Success.</b> Go <a href="/meatoo">home</a>''')
-        yield template.respond()
-        yield footer()
+        content = "<b>Success!</b><br><br>Go <a href='/meatoo'>home</a>"
+        yield self.plain_page(content)
 
     @needsLogin
     def options(self, *args, **kwargs):
@@ -497,5 +463,5 @@ class MyServer(cptools.PositionalParametersAware):
         if not herd:
             return """No herd specified."""
         packages = Packages.select(LIKE(Packages.q.maintainerName, '%' +  herd + '%') )
-        utils.generate_rss(packages)
+        utils.generate_rss(packages, herd)
 

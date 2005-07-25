@@ -19,24 +19,53 @@ import cherrypy
 
 from meatoodb import *
 
-
-def mail_passwd(username):
-    password = accounts.get_user_passwd(username)
-    mail = '''Date: %s\n''' % datetime.datetime.now()
-    mail += '''To: <%s>\n''' % "%s@gentoo.org" % username
-    mail += '''From: "Meatoo Admin" <gentooexp@gmail.com>\n'''
-    mail += '''Subject: Your lost Meatoo password.\n\n'''
-    mail += '''Tsk tsk!\n\n'''
-    mail += '''Your password is: %s\n''' % password
+def send_email(address, body):
+    """Send email. Return -1 if fail"""
     tfname = tempfile.mktemp()
     tempFile = open(tfname, "w")
-    tempFile.write(mail)
+    tempFile.write(body)
     tempFile.close()
     os.system('/usr/bin/nbsmtp -V < %s' % tfname)
     try:
         os.unlink(tfname)
     except:
         print "WARNING - tmpfile not deleted - ", tfname
+        return -1
+
+def send_new_passwd(address):
+    """Create new account and email passwd"""
+    if "@" not in address:
+        return "Invalid email address."
+    if address.split("@")[1] != "gentoo.org":
+        return "Only official Gentoo developers may register."
+
+    username = address.split("@")[0] 
+    password = accounts.get_password()
+    if accounts.get_user_passwd(username):
+        return "You already have an account."
+
+    body = '''Date: %s\n''' % datetime.datetime.now()
+    body += '''To: <%s>\n''' % address
+    body += '''From: "Meatoo Registration" <gentooexp@gmail.com>\n'''
+    body += '''Subject: Meatoo is ready for you.\n\n'''
+    body += '''You can now login to Meatoo and add, delete or modify entries.\n\n'''
+    body += '''Your password is: %s\n''' % password
+    if send_email(address, body) == -1:
+        return "There was an error sending email."
+    else:
+        accounts.add_user(username, password)
+        return "Your password has been emailed."
+
+def mail_lost_passwd(username):
+    """Email existing password to user"""
+    password = accounts.get_user_passwd(username)
+    body = '''Date: %s\n''' % datetime.datetime.now()
+    body += '''To: <%s>\n''' % "%s@gentoo.org" % username
+    body += '''From: "Meatoo Admin" <gentooexp@gbody.com>\n'''
+    body += '''Subject: Your lost Meatoo password.\n\n'''
+    body += '''Tsk tsk!\n\n'''
+    body += '''Your password is: %s\n''' % password
+    send_email(address, body)
 
 def get_dload_size(url):
     """Returns int size in bytes of file for given url"""
