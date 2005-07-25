@@ -1,0 +1,238 @@
+2005-07-25 04:32  pythonhead
+
+	* trunk: Added svn:ignore props
+
+2005-07-25 04:31  pythonhead
+
+	* trunk/.svnignore, trunk/templates, trunk/templates/.svnignore:
+	  Added svn:ignore props
+
+2005-07-25 03:44  pythonhead
+
+	* trunk/MeatooServer.py, trunk/XMLServer.py, trunk/cherry_meatoo.py,
+	  trunk/utils.py: Added pdb debugger method.
+
+2005-07-25 02:42  pythonhead
+
+	* trunk/pgen.py: Use random module instead of whrandom
+
+2005-07-24 21:24  pythonhead
+
+	* trunk/MeatooServer.py, trunk/auth.py: Added lost passwd link
+
+2005-07-24 20:16  pythonhead
+
+	* trunk/accounts.py: Added troves when creating user
+
+2005-07-24 19:49  rl03
+
+	* trunk/MeatooServer.py: Fixed b0rkage
+
+2005-07-24 19:46  rl03
+
+	* trunk/MeatooServer.py, trunk/herds.py, trunk/meatoodb.py,
+	  trunk/templates/body.tmpl, trunk/utils.py: Added user-defined
+	  troves, ripped out herds
+
+2005-07-24 18:33  pythonhead
+
+	* trunk/utils.py: Fixed mail passwd bug.
+
+2005-07-24 18:16  pythonhead
+
+	* trunk/MeatooServer.py, trunk/TODO, trunk/accounts.py,
+	  trunk/utils.py: Added mail lost passwd feature
+
+2005-07-23 20:58  pythonhead
+
+	* trunk/MeatooServer.py, trunk/accounts.py: Added change password
+	  form.
+
+2005-07-23 20:58  pythonhead
+
+	* trunk/templates/change_passwd.tmpl: Changed text field to password
+
+2005-07-23 20:40  pythonhead
+
+	* trunk/accounts.py: Fixed new account creation.
+
+2005-07-23 20:16  pythonhead
+
+	* trunk/TODO: Removed done stuff
+
+2005-07-23 20:03  pythonhead
+
+	* trunk/templates/__init__.py, trunk/templates/change_passwd.tmpl:
+	  Added change passwd tmpl
+
+2005-07-23 19:57  rl03
+
+	* trunk/static/delete.png: added delete.png
+
+2005-07-23 19:57  rl03
+
+	* trunk/MeatooServer.py, trunk/meatoodb.py,
+	  trunk/templates/body.tmpl, trunk/utils.py: Users can now add and
+	  delete herds
+
+2005-07-23 18:22  rl03
+
+	* trunk/me2sql.py, trunk/meatoodb.py, trunk/utils.py: herdstat is
+	  invoked from me2sql, added auto-generated and user-defined herds
+
+2005-07-23 18:02  pythonhead
+
+	* trunk/MeatooServer.py, trunk/utils.py: Exposed all methods in
+	  MeatooServer using metaclass
+
+2005-07-23 08:21  pythonhead
+
+	* trunk/MeatooServer.py: Added standard error form.
+
+2005-07-23 07:44  pythonhead
+
+	* trunk/static/stylin.css: Added admin table/form css
+
+2005-07-23 07:23  pythonhead
+
+	* trunk/MeatooServer.py: Use cheetah compiled templates. Added My
+	  Herds section
+
+2005-07-23 07:23  pythonhead
+
+	* trunk/herds.py: Added herdstat funcs
+
+2005-07-23 07:22  pythonhead
+
+	* trunk/utils.py: Initial commit. Misc helper funcs
+
+2005-07-23 07:21  pythonhead
+
+	* trunk/auth.py: Return username as userid. Cleaned up form css
+
+2005-07-23 07:20  pythonhead
+
+	* trunk/sections.py: Refactored header / header_top
+
+2005-07-23 07:19  pythonhead
+
+	* trunk/accounts.py: Added get_logged_username
+
+2005-07-23 07:17  pythonhead
+
+	* trunk/templates/body.py, trunk/templates/search.py: Removed
+	  compiled templates.
+
+2005-07-23 07:05  pythonhead
+
+	* trunk/templates, trunk/templates/__init__.py,
+	  trunk/templates/body.py, trunk/templates/body.tmpl,
+	  trunk/templates/search.py, trunk/templates/search.tmpl: Initial
+	  commit cheetah compiled templates
+
+2005-07-22 21:38  pythonhead
+
+	* trunk/static/stylin.css: Removed unused elements
+
+2005-07-22 12:35  rl03
+
+	* trunk/MeatooServer.py, trunk/herds.py: Split herds into herds.py
+
+2005-07-22 11:52  rl03
+
+	* trunk/MeatooServer.py, trunk/meatoodb.py: Added herd support
+
+2005-07-20 23:03  pythonhead
+
+	* trunk/MeatooServer.py, trunk/sections.py, trunk/static/stylin.css:
+	  Fixed header css
+
+2005-07-20 21:44  pythonhead
+
+	* trunk/auth.py: Fixed auth.py so apache ProxyPass isn't needed
+
+2005-07-20 20:02  pythonhead
+
+	* trunk/MeatooServer.py, trunk/XMLServer.py, trunk/auth.py,
+	  trunk/sections.py: Use decorators for exposed methods. Cleaned up
+	  sections.py
+
+2005-07-20 07:13  pythonhead
+
+	* trunk/sections.py: New header with meatoo.png
+
+2005-07-20 07:13  pythonhead
+
+	* trunk/static/meatoo.png: Initial commit
+
+2005-07-19 23:29  rl03
+
+	* trunk/MeatooServer.py, trunk/meatoo.conf.example: Added link for
+	  all vs. recent search results, obsoleted showall section in
+	  meatoo.conf
+
+2005-07-19 22:54  rl03
+
+	* trunk/MeatooServer.py: Fix version comparison
+
+2005-07-19 22:33  rl03
+
+	* trunk/MeatooServer.py, trunk/accounts.py: Fix authorization snafu
+
+2005-07-19 21:14  pythonhead
+
+	* trunk/me2dload.py: Cleaned up imports
+
+2005-07-19 20:16  pythonhead
+
+	* trunk/MeatooServer.py: Aligned icons for 5 days on front page.
+
+2005-07-19 06:45  pythonhead
+
+	* trunk/MeatooServer.py, trunk/accounts.py, trunk/auth.py: User
+	  accounts now stored in sql
+
+2005-07-19 01:52  pythonhead
+
+	* trunk/MeatooServer.py: Added ignore/add_kwown etc. icons to front
+	  page
+
+2005-07-18 22:48  pythonhead
+
+	* trunk: Added svn:ignore props
+
+2005-07-18 21:01  pythonhead
+
+	* trunk/MeatooServer.py, trunk/README, trunk/meatoodb.py,
+	  trunk/sections.py: Added 'ignore' link and authorization
+
+2005-07-18 20:06  pythonhead
+
+	* trunk/TODO: More do's.
+
+2005-07-18 18:31  pythonhead
+
+	* trunk/static, trunk/static/changelog.gif,
+	  trunk/static/cherryPyLogo.gif, trunk/static/edit.gif,
+	  trunk/static/edit.png, trunk/static/faq.html,
+	  trunk/static/home.png, trunk/static/link_button_3.gif,
+	  trunk/static/sqlobject-700.png, trunk/static/stylin.css: Initial
+	  import
+
+2005-07-18 18:29  pythonhead
+
+	* trunk/INSTALL: Initial commit
+
+2005-07-18 18:01  pythonhead
+
+	* trunk/CREDITS: Initial import.
+
+2005-07-18 17:49  pythonhead
+
+	* branches, tags, trunk, trunk/MeatooServer.py, trunk/PyRSS2Gen.py,
+	  trunk/README, trunk/TODO, trunk/XMLServer.py, trunk/auth.py,
+	  trunk/cherry_meatoo.py, trunk/cherrypy.conf.example,
+	  trunk/me2dload.py, trunk/me2sql.py, trunk/meatoo.conf.example,
+	  trunk/meatoodb.py, trunk/pgen.py, trunk/sections.py: Initial
+	  import.
+
