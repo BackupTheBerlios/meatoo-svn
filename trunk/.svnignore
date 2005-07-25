@@ -1,0 +1,6 @@
+*.pyc
+*.swp
+cherrypy.conf
+meatoo.conf
+sqlitedb
+extra
