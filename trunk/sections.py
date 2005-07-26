@@ -24,7 +24,7 @@ def header_top():
     <tr border=0><td border=0><a href="/meatoo"><img border=0 src="/meatoo/static/meatoo.png"></a></td>
     <td border=0 align="right"><p align="right">
     <a href="/meatoo">Home</a> |
-    <a href="/meatoo/static/faq.html">FAQ</a> | Advanced Search |
+    <a href="/meatoo/static/faq.html">FAQ</a> | 
     #if $logged:
         <a href="/meatoo/options"> Options</a> |
         <a href="/meatoo/logout"> Logout</a> 
