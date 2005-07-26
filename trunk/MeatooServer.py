@@ -83,19 +83,19 @@ class MyServer(cptools.PositionalParametersAware):
         week = utils.get_days()
         
         #FIXME: Show either pkgs needing bump or all fm pkgs
-        #packages = Packages.select(AND(OR(Packages.q.latestReleaseDate == week[0],
-        #                            Packages.q.latestReleaseDate == week[1],
-        #                            Packages.q.latestReleaseDate == week[2],
-        #                            Packages.q.latestReleaseDate == week[3],
-        #                            Packages.q.latestReleaseDate == week[4]
-        #                            ), Packages.q.fmNewer==0))
-
-        packages = Packages.select(OR(Packages.q.latestReleaseDate == week[0],
+        packages = Packages.select(AND(OR(Packages.q.latestReleaseDate == week[0],
                                     Packages.q.latestReleaseDate == week[1],
                                     Packages.q.latestReleaseDate == week[2],
                                     Packages.q.latestReleaseDate == week[3],
                                     Packages.q.latestReleaseDate == week[4]
-                                    ))
+                                    ), Packages.q.fmNewer==1))
+
+        #packages = Packages.select(OR(Packages.q.latestReleaseDate == week[0],
+        #                            Packages.q.latestReleaseDate == week[1],
+        #                            Packages.q.latestReleaseDate == week[2],
+        #                            Packages.q.latestReleaseDate == week[3],
+        #                            Packages.q.latestReleaseDate == week[4]
+        #                            ))
         packages = packages.orderBy('latestReleaseDate').reversed()
         try:
             my_herds = cherrypy.session['herds'].split(" ")
