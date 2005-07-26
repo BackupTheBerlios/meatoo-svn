@@ -1,14 +1,19 @@
 
 <b>Search results for:</b> Trove <a href="http://freshmeat.net/browse/$trove/">$trove</a>: $descr<br />
 <table>
-<tr> <th>Freshmeat Name</th> <th>Freshmeat Version</th> <th>Freshmeat Release Date</th> <th>In Portage?</th> </tr>
+<tr> <th>Freshmeat Name</th> <th>Freshmeat Version</th> <th>Description</th> <th>Freshmeat Release Date</th> <th>In Portage?</th> </tr>
 
 #for $pkg in $packages
     <tr class="alt">
     <td>$pkg.fmName</td>
     <td><a href="http://freshmeat.net/projects/$pkg.fmName/">$pkg.latestReleaseVersion</a></td>
+    <td>$pkg.descShort</td>
     <td>$pkg.latestReleaseDate</td>
-    <td>$pkg.inPortage</td>
+    #if $pkg.inPortage
+    <td class="true">$pkg.inPortage</td>
+    #else
+    <td class="false">$pkg.inPortage</td>
+    #end if
     </tr>
 #end for
 </table>

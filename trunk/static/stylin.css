@@ -127,4 +127,12 @@ tr.alt td.hilite
 	background-color:red;
 }
 
+tr.alt td.true
+{
+	color:green;
+}
 
+tr.alt td.false
+{
+	color:red;
+}

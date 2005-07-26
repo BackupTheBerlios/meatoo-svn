@@ -120,6 +120,7 @@ class Allfm(SQLObject):
                 StringCol('descShort', length=254, notNull=1),
                 StringCol('latestReleaseVersion', length=64, notNull=1),
                 StringCol('latestReleaseDate', length=128, notNull=1),
+                StringCol('descShort', length=254, notNull=1),
                 StringCol('urlHomepage', length=128, notNull=1),
                 StringCol('urlChangelog', length=128, notNull=1),
                 StringCol('troveId', length=128, notNull=1),
