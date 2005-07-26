@@ -16,7 +16,6 @@ Website:
 * Subscription service to mail new pkg info by herd/maintainer. (Rob)
   (This won't get done till we move to host with smtp server)
 * Log usernames when someone edits/ignores a package. (Rob)
-* stu's blog functionality. (RL)
 * per-pkg regexps to compare versions.(RL)
 
 me2dload.py:
