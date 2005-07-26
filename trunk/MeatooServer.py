@@ -2,7 +2,6 @@
 import datetime
 from time import *
 import tempfile
-import ConfigParser
 import types
 
 import cherrypy
@@ -155,6 +154,10 @@ class MyServer(cptools.PositionalParametersAware):
         except:
             pass
         ignore = Ignores(packageName = pn, latestReleaseVersion = ver)
+        username = accounts.get_logged_username()
+        timestamp = asctime(gmtime())
+        msg = "%s %s IGNORE %s-%s" % (timestamp, username, pn, ver)
+        utils.admin_log_msg(msg)
         template = Template('''Freshmeat version $ver of $pn ignored.
                                 <br><br>Go <a href='/meatoo'>back</a>''',
                                 [locals(), globals()])
@@ -285,6 +288,9 @@ class MyServer(cptools.PositionalParametersAware):
     @needsLogin
     def known_submit(self, new_cat="", new_pn="", fmpn=""):
         """Add submitted known match to db"""
+        username = accounts.get_logged_username()
+        timestamp = asctime(gmtime())
+        msg = "%s %s CHANGE " % (timestamp, username)
         if not new_pn or not new_cat:
             yield self.error_form("No package specified!")
             return
@@ -294,6 +300,7 @@ class MyServer(cptools.PositionalParametersAware):
             try:
                 good[0].set(packageName = new_pn,
                     portageCategory = new_cat)
+                msg += "%s-%s NEW_PN NEW_CAT\n" % (new_pn, new_cat)
             except:
                 yield self.error_form("Failed to update database!")
                 return
@@ -303,6 +310,7 @@ class MyServer(cptools.PositionalParametersAware):
                 g=KnownGood(packageName = new_pn,
                     portageCategory = new_cat,
                     fmName = fmpn)
+                msg += "%s-%s %s NEW_PN NEW_CAT FMNM\n" % (new_pn, new_cat, fmpn)
            except:
                yield self.error_form("Failed to update database!")
                return
@@ -311,10 +319,12 @@ class MyServer(cptools.PositionalParametersAware):
         try:
             packages[0].set(packageName = new_pn,
                     portageCategory = new_cat)
+            msg += "%s-%s NEW_PN NEW_CAT\n" % (new_pn, new_cat)
         except:
             yield self.error_form("Failed to update database!")
             return
 
+        utils.admin_log_msg(msg)
         content = "<b>Success!</b><br><br>Go <a href='/meatoo'>home</a>"
         yield self.plain_page(content)
         

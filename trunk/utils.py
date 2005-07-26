@@ -11,6 +11,7 @@ from time import *
 import datetime
 import os
 import tempfile
+import ConfigParser
 
 import PyRSS2Gen
 import accounts
@@ -18,6 +19,12 @@ import herds
 import cherrypy
 
 from meatoodb import *
+
+CONFIG = "./meatoo.conf"
+config = ConfigParser.ConfigParser()
+config.read(CONFIG)
+
+ADMIN_LOG = config.get("log", "admin_log")
 
 def send_email(address, body):
     """Send email. Return -1 if fail"""
@@ -132,21 +139,27 @@ def generate_rss(packages, herd):
         items = items)
     return rss.to_xml()
 
-def get_cookie(self, name):
+def get_cookie(name):
     """Reads the value of a cookie"""
     try:
         return cherrypy.request.simpleCookie[name].value
     except Exception:
         return None
 
-def set_cookie(self, name, value, path='/', age=60, version=1):
+def set_cookie(name, value, path='/', age=60, version=1):
     """Sets a cookie, age in seconds"""
     cherrypy.response.simpleCookie[name] = value
     cherrypy.response.simpleCookie[name]['path']    = path
     cherrypy.response.simpleCookie[name]['max-age'] = age
     cherrypy.response.simpleCookie[name]['version'] = version
 
-def del_cookie(self, name):
+def del_cookie(name):
     """Deletes a cookie"""
     cherrypy.response.simpleCookie[name]['expires']  = 0
+
+def admin_log_msg(msg):
+    """Adds line to log file"""
+    f = open(ADMIN_LOG, "a")
+    f.write(msg)
+    f.close()
 
