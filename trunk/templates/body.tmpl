@@ -1,6 +1,12 @@
 
 <table><tr>
 <td width="12%">
+#if not $my_herds
+    <font size=-1>
+    <a href='/meatoo/login'>Login</a><br><br>
+    <a href='/meatoo/lost_passwd'>Lost password?</a>
+    </font>
+#end if
 #if $my_herds
 <br>
 <b>My Herds</b><a href="/meatoo/add_user_herd">[+]</a><br />

@@ -457,7 +457,7 @@ class MyServer(cptools.PositionalParametersAware):
     def options(self, *args, **kwargs):
         content = """<h1 class='admin'>Options</h1>
                      <a href='/meatoo/change_passwd'>Change password<br></a>
-                     <a href='/meatoo/lost_passwd'>Lost your password?</a>"""
+                     """
         yield self.plain_page(content)
 
     @needsLogin
@@ -474,16 +474,22 @@ class MyServer(cptools.PositionalParametersAware):
         cherrypy.session['troves'] = None
         httptools.redirect("/")
     
-    @needsLogin
-    def lost_passwd(self, *args, **kwargs):
-        content = """Click <a href='/meatoo/lost_passwd_confirm'>here</a>
-                     to mail password."""
+    def lost_passwd(self):
+        """Form for mailing lost passwd"""
+        content = """
+            <b>Lost password?</b>
+            <form method="get" action="/meatoo/lost_passwd_action/">
+            <div>
+            <br>Enter your Gentoo developer username: 
+            <input type='input' name='username' value=""></td>
+            <input type="submit" value="Send" />
+            </div>
+            </form>"""
         yield self.plain_page(content)
 
-    @needsLogin
-    def lost_passwd_confirm(self, *args, **kwargs):
-        username = accounts.get_logged_username()
-        utils.mail_passwd(username)
+    def lost_passwd_action(self, username):
+        """Mail lost passwd"""
+        utils.mail_lost_passwd(username)
         content = """Password mailed.<br><br>Go <a href='/meatoo'>home.</a>"""
         yield self.plain_page(content)
 

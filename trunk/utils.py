@@ -26,7 +26,7 @@ config.read(CONFIG)
 
 ADMIN_LOG = config.get("log", "admin_log")
 
-def send_email(address, body):
+def send_email(body):
     """Send email. Return -1 if fail"""
     tfname = tempfile.mktemp()
     tempFile = open(tfname, "w")
@@ -72,7 +72,7 @@ def mail_lost_passwd(username):
     body += '''Subject: Your lost Meatoo password.\n\n'''
     body += '''Tsk tsk!\n\n'''
     body += '''Your password is: %s\n''' % password
-    send_email(address, body)
+    send_email(body)
 
 def get_dload_size(url):
     """Returns int size in bytes of file for given url"""
