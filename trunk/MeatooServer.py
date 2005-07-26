@@ -281,6 +281,9 @@ class MyServer(cptools.PositionalParametersAware):
         template = Template('''
             <b>Edit Portage name for:</b> $pn
             <br><br>
+            If a Freshmeat package name does not match,
+            you can re-map it to a new Gentoo category and package name.
+            <br><br>
             <table>
             <tr> <th>Existing match</th> 
             <th>New package category</th> <th>New package name</tr>
