@@ -26,6 +26,7 @@ import portage
 
 from meatoodb import *
 import herds
+import utils
 
 
 FM_DICT = "/var/tmp/meatoo/fmdb"
@@ -151,6 +152,7 @@ def crossref_gentoo(fm):
 
 def delete_row(pn):
     """Delete row by PN when portage ver catches up to fm version"""
+    #FIXME: unused
     try:
         pkg = Packages.select(Packages.q.packageName == pn)
         pkg[0].destroySelf()
@@ -221,6 +223,34 @@ def update_sql(desc, my_fm, cat, pn, pv, maints, higher):
         print "NEW", true_pn, my_fm['latestReleaseDate'], pv, my_fm['latestReleaseVersion']
         my_rss.new_item(true_cat, true_pn, pv, my_fm['latestReleaseVersion'], desc, my_fm['descShort'], my_fm['latestReleaseDate'])
 
+def get_latest_fm(fm):
+    """Store 1 week's worth of all FM releases in a table"""
+
+    week = utils.get_days()
+    
+    pkgs = get_gentoo_pkgs()
+    pnames = []
+    for gp in pkgs:
+        pnames.append(gp.split('/')[1])
+                
+    for pkg in fm.keys():
+        if fm[pkg]['latestReleaseDate'] in week:
+            if fm[pkg]['fmName'].lower() in pnames:
+                port = True
+            else:
+                port = False
+                
+            Allfm(fmName = fm[pkg]['fmName'],
+                         descShort = fm[pkg]['descShort'],
+                         latestReleaseVersion = fm[pkg]['latestReleaseVersion'],
+                         urlHomepage = fm[pkg]['urlHomepage'],
+                         urlChangelog = fm[pkg]['urlChangelog'],
+                         latestReleaseDate = fm[pkg]['latestReleaseDate'],
+                         troveId = fm[pkg]['troveId'],
+                         inPortage = port
+                        )
+            print "NEW_ALL", fm[pkg]['fmName'], fm[pkg]['latestReleaseDate'], fm[pkg]['latestReleaseVersion'], fm[pkg]['troveId'], port
+
 def store_herds():
     """Store herds of each registered dev in the db"""
     for dev in Users.select():
@@ -235,6 +265,8 @@ if __name__ == '__main__':
                             help="Write static RSS file.")
     optParser.add_option( "-d", action="store_true", dest="herds", default=False,
                             help="Update database of herds.")
+    optParser.add_option( "-l", action="store_true", dest="latest", default=False,
+                            help="Update database of all latest FM releases.")
     options, remainingArgs = optParser.parse_args()
     if len(sys.argv) == 1:
         optParser.print_help()
@@ -251,3 +283,6 @@ if __name__ == '__main__':
         #print len(fm.keys())
     if options.herds:
         store_herds()
+    if options.latest:
+        fm = cPickle.load(open(FM_DICT, 'r'))
+        get_latest_fm(fm)

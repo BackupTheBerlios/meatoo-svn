@@ -99,9 +99,9 @@ class Stats(SQLObject):
         fm_rdf_size      - Filesize in bytes of last fm download
         pkgs_ttl         - Total number of pkgs in database
         matches_ttl      - Total gentoo->fm pkg matches
-        need_bump_ttl    - Numper of pkgs needing a bump
-        weekly_bumped    - Numper of pkgs bumped this week
-        weekly_need_bump - Numper of pkgs needing a bump this week"""
+        need_bump_ttl    - Number of pkgs needing a bump
+        weekly_bumped    - Number of pkgs bumped this week
+        weekly_need_bump - Number of pkgs needing a bump this week"""
 
     _connection = conn
     _columns = [IntCol('fm_rdf_size', notNull=0),
@@ -112,10 +112,23 @@ class Stats(SQLObject):
                 IntCol('weekly_need_bumps', notNull=0)
                ]
 
+class Allfm(SQLObject):
+    """Contains all FM releases for the past week"""
+    _connection = conn
+
+    _columns = [StringCol('fmName', length=128, notNull=1),
+                StringCol('descShort', length=254, notNull=1),
+                StringCol('latestReleaseVersion', length=64, notNull=1),
+                StringCol('latestReleaseDate', length=128, notNull=1),
+                StringCol('urlHomepage', length=128, notNull=1),
+                StringCol('urlChangelog', length=128, notNull=1),
+                StringCol('troveId', length=128, notNull=1),
+                BoolCol('inPortage',notNull=1)
+               ]
 
 Packages.createTable(ifNotExists = True)
 Ignores.createTable(ifNotExists = True)
 KnownGood.createTable(ifNotExists = True)
 Users.createTable(ifNotExists = True)
 Stats.createTable(ifNotExists = True)
-
+Allfm.createTable(ifNotExists = True)

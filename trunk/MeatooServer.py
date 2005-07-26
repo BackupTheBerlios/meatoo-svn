@@ -42,6 +42,7 @@ class MyServer(cptools.PositionalParametersAware):
         self.verbose = verbose
         self._body_tmpl = templates.body()
         self._search_tmpl = templates.search()
+        self._showtrove_tmpl = templates.showtrove()
         self._change_passwd_tmpl = templates.change_passwd()
 
     #FIXME: Its tricky turning this on based on a config
@@ -184,6 +185,33 @@ class MyServer(cptools.PositionalParametersAware):
         """Send generated password for new account to user"""
         yield self.plain_page(utils.send_new_passwd(address))
 
+    @needsLogin
+    def show_trove(self, trove):
+        """Return search results by trove"""
+        yield header()
+        yield '''<h3> This is a list of Freshmeat releases  in the past week that belong to one of the Freshmeat troves you specified</h3><br />'''
+        packages = Allfm.select(LIKE(Allfm.q.troveId, '%' + trove + '%'))
+        packages = packages.orderBy('latestReleaseDate').reversed()
+        self._showtrove_tmpl.trove = trove
+        self._showtrove_tmpl.packages = packages
+        yield self._showtrove_tmpl.respond()
+        yield footer()
+        
+    @needsLogin
+    def show_all_troves(self):
+        """Return search results for all user troves"""
+        
+        troves = cherrypy.session['troves']
+        yield header() 
+        yield '''<h3> This is a list of Freshmeat releases  in the past week that belong to one of the Freshmeat troves you specified</h3><br />'''
+        for t in troves.split():
+            packages = Allfm.select(LIKE(Allfm.q.troveId, '%' + t + '%'))
+            packages = packages.orderBy('latestReleaseDate').reversed()
+            self._showtrove_tmpl.trove = t
+            self._showtrove_tmpl.packages = packages
+            yield self._showtrove_tmpl.respond()
+        yield footer()
+        
     def search(self, length = "short", srch = "", type = ""):
         """Return search results page. length refers to verbosity. 
         'short' means show only new packages, 'long' means show all"""

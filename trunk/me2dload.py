@@ -51,6 +51,7 @@ def download_fm():
 def parse_rdf(filename):
     """Parse given fm rdf"""
     f = {}
+    trove = ""
     for event, elem in iterparse(open(filename, "r")):
         if elem.tag == "project_id":
             project_id = int(elem.text)
@@ -72,14 +73,20 @@ def parse_rdf(filename):
             elem.clear()
         elif elem.tag == "latest_release_date":
             latest_release_date = "%s" % elem.text[0:10]
-            if elem.text[0:4] == "2005" or elem.text[0:4] == "2004":
-                f[projectname_short] = {'id': project_id,
+            elem.clear()
+        elif elem.tag == "descriminators":
+            t = ""
+            for trove in elem[:]:
+                t = "%s %s" % (t, trove.text)
+            if latest_release_date[0:4] == "2005" or latest_release_date[0:4] == "2004":
+                    f[projectname_short] = {'id': project_id,
                                 'descShort': desc_short,
                                 'fmName': projectname_short,
                                 'latestReleaseVersion': latest_release_version,
                                 'urlHomepage': url_homepage,
                                 'urlChangelog': url_changelog,
-                                'latestReleaseDate': latest_release_date
+                                'latestReleaseDate': latest_release_date,
+                                'troveId': t
                                 }
             elem.clear()
     file = open(FM_DICT, 'w')
