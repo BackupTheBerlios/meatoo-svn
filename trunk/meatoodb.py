@@ -126,9 +126,18 @@ class Allfm(SQLObject):
                 BoolCol('inPortage',notNull=1)
                ]
 
+class Troves(SQLObject):
+    """Contains all FM troves"""
+    _connection = conn
+
+    _columns = [StringCol('fId', length=32, notNull=1),
+                StringCol('name', length=254, notNull=1)
+               ]
+
 Packages.createTable(ifNotExists = True)
 Ignores.createTable(ifNotExists = True)
 KnownGood.createTable(ifNotExists = True)
 Users.createTable(ifNotExists = True)
 Stats.createTable(ifNotExists = True)
 Allfm.createTable(ifNotExists = True)
+Troves.createTable(ifNotExists = True)

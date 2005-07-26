@@ -106,7 +106,13 @@ class MyServer(cptools.PositionalParametersAware):
         except:
             troves = None
 
-        self._body_tmpl.troves = troves
+        tr = {}
+        if troves:
+            for t in troves:
+                a = Troves.select(Troves.q.fId == t)
+                tr[t] = a[0].name
+
+        self._body_tmpl.troves = tr 
         self._body_tmpl.username = accounts.get_logged_username()
         self._body_tmpl.week = week
         self._body_tmpl.my_herds = my_herds
@@ -195,7 +201,10 @@ class MyServer(cptools.PositionalParametersAware):
         yield '''<h3> This is a list of Freshmeat releases  in the past week that belong to one of the Freshmeat troves you specified</h3><br />'''
         packages = Allfm.select(LIKE(Allfm.q.troveId, '%' + trove + '%'))
         packages = packages.orderBy('latestReleaseDate').reversed()
+        
+        a = Troves.select(Troves.q.fId == trove)
         self._showtrove_tmpl.trove = trove
+        self._showtrove_tmpl.descr = a[0].name
         self._showtrove_tmpl.packages = packages
         yield self._showtrove_tmpl.respond()
         yield footer()
@@ -210,6 +219,9 @@ class MyServer(cptools.PositionalParametersAware):
         for t in troves.split():
             packages = Allfm.select(LIKE(Allfm.q.troveId, '%' + t + '%'))
             packages = packages.orderBy('latestReleaseDate').reversed()
+            a = Troves.select(Troves.q.fId == t)
+
+            self._showtrove_tmpl.descr = a[0].name
             self._showtrove_tmpl.trove = t
             self._showtrove_tmpl.packages = packages
             yield self._showtrove_tmpl.respond()

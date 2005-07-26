@@ -16,8 +16,8 @@
 #if $troves
 <br />
 <a href="/meatoo/show_all_troves">All</a><br />
-#for $t in $troves
-<a href="/meatoo/show_trove/$t">$t</a>
+#for $t, $n in $troves.items()
+<a href="/meatoo/show_trove/$t"><span title="$n">$t</span></a>
 <a href="/meatoo/del_user_trove/$t"><img border=0 src="/meatoo/static/delete.png"></a>
 <br />
 #end for

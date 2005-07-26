@@ -30,6 +30,7 @@ import utils
 
 
 FM_DICT = "/var/tmp/meatoo/fmdb"
+TROVES_DICT = "/var/tmp/meatoo/trdb"
 XML_FILE = "/usr/share/meatoo/meatoo.xml"
 TREE_FILE = "/var/tmp/meatoo/porttree"
 
@@ -256,6 +257,11 @@ def store_herds():
     for dev in Users.select():
         dev.set(herdsAuto = " ".join(herds.get_dev_herds(dev.user)))
 
+def store_troves(tr):
+    """Store FM troves in the db"""
+    for t in tr.keys():
+        Troves(fId = tr[t]['id'], name = tr[t]['name'] )
+
 if __name__ == '__main__':
 
     optParser = optparse.OptionParser()
@@ -267,6 +273,8 @@ if __name__ == '__main__':
                             help="Update database of herds.")
     optParser.add_option( "-l", action="store_true", dest="latest", default=False,
                             help="Update database of all latest FM releases.")
+    optParser.add_option( "-t", action="store_true", dest="troves", default=False,
+                            help="Update database of FM troves.")
     options, remainingArgs = optParser.parse_args()
     if len(sys.argv) == 1:
         optParser.print_help()
@@ -286,3 +294,6 @@ if __name__ == '__main__':
     if options.latest:
         fm = cPickle.load(open(FM_DICT, 'r'))
         get_latest_fm(fm)
+    if options.troves:
+        fm = cPickle.load(open(TROVES_DICT, 'r'))
+        store_troves(fm)

@@ -27,8 +27,11 @@ import portage
 
 
 RDF_FILE = "/var/tmp/meatoo/fm-projects.rdf"
+TROVES_FILE = "/var/tmp/meatoo/fm-trove.rdf"
 RDF_REMOTE = "http://download.freshmeat.net/backend/fm-projects.rdf.bz2"
+TROVES_REMOTE = "http://download.freshmeat.net/backend/fm-trove.rdf"
 FM_DICT = "/var/tmp/meatoo/fmdb"
+TROVES_DICT = "/var/tmp/meatoo/trdb"
 TREE_FILE = "/var/tmp/meatoo/porttree"
 
 
@@ -47,6 +50,14 @@ def download_fm():
     file_out = open("%s.bz2" % RDF_FILE, "w").write(rdf_buff)
 
     os.system("bunzip2 %s.bz2" % RDF_FILE)
+
+def download_troves():
+    """Download troves file from freshmeat.net"""
+    if os.path.exists(TROVES_DICT):
+        os.unlink(TROVES_DICT)
+    fm = urllib.urlopen(TROVES_REMOTE)
+    rdf_buff = fm.read()
+    file_out = open(TROVES_FILE, "w").write(rdf_buff)
 
 def parse_rdf(filename):
     """Parse given fm rdf"""
@@ -92,6 +103,23 @@ def parse_rdf(filename):
     file = open(FM_DICT, 'w')
     cPickle.dump(f, file)
 
+def parse_troves(filename):
+    """Parse given fm troves"""
+    f = {}
+    for event, elem in iterparse(open(filename, "r")):
+        if elem.tag == "id":
+            id = int(elem.text)
+            elem.clear()
+        elif elem.tag == "name":
+            name = "%s" % elem.text
+            elem.clear()
+            f[id] = {'id': id,
+                        'name': name
+                        }
+            elem.clear()
+    file = open(TROVES_DICT, 'w')
+    cPickle.dump(f, file)
+
 def pickle_tree():
     """Pickles entire Portage tree, including overlays."""
     # is there an easy way to avoid returning overlays?
@@ -109,6 +137,10 @@ if __name__ == '__main__':
                             help="Parse and pickle freshmeat RDF file.")
     optParser.add_option( "-t", action="store_true", dest="tree", default=False,
                             help="Pickle portage tree.")
+    optParser.add_option( "-D", action="store_true", dest="trdload", default=False,
+                            help="Download freshmeat troves file.")
+    optParser.add_option( "-P", action="store_true", dest="trparse", default=False,
+                            help="Parse and pickle freshmeat troves file.")
     options, remainingArgs = optParser.parse_args()
     if len(sys.argv) == 1:
         optParser.print_help()
@@ -122,3 +154,9 @@ if __name__ == '__main__':
     
     if options.tree:
         pickle_tree()
+    
+    if options.trdload:
+        download_troves()
+
+    if options.trparse:
+        parse_troves(TROVES_FILE)
