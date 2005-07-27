@@ -534,5 +534,5 @@ class MyServer(cptools.PositionalParametersAware):
             return """No herd specified."""
         packages = Packages.select(LIKE(Packages.q.maintainerName,
                     '%' +  herd + '%') )
-        utils.generate_rss(packages, herd)
+        return utils.generate_rss(packages, herd)
 
