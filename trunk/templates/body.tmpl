@@ -44,7 +44,7 @@
     <a class="nav" href="http://freshmeat.net/projects/$pkg.packageName/" title="Freshmeat Latest Release">$pkg.latestReleaseVersion</a> ]</b>
     $pkg.latestReleaseDate 
 
-    <a class="nav" href="/meatoo/ignore/$pkg.id" title="Ignore this version of this package.">
+    <a class="nav" href="/meatoo/ignore/$pkg.packageName/$pkg.latestReleaseVersion" title="Ignore this version of this package.">
     <img border=0 src="/meatoo/static/edit.png" alt="Ignore"></a>
     <a class="nav" href="/meatoo/add_known/$pkg.fmName" title="Edit Portage name">
     <img border=0 src="/meatoo/static/edit.gif"></a>
@@ -78,7 +78,8 @@
     </td>
 
     <td>
-    <a class="nav" href="/meatoo/ignore/$pkg.id" title="Ignore this version of this package.">
+    <a class="nav" href="/meatoo/ignore/$pkg.packageName/$pkg.latestReleaseVersion"
+         title="Ignore this version of this package.">
     <img border=0 src="/meatoo/static/edit.png" alt="Ignore"></a>
     <a class="nav" href="/meatoo/add_known/$pkg.fmName" title="Edit Portage name">
     <img border=0 src="/meatoo/static/edit.gif"></a>
