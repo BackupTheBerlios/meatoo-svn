@@ -2,45 +2,43 @@
 <a href="/meatoo/">Back to Meatoo</a>
 <br>
 <br>
-Meatoo is a work in progress:<br><br>
-<b>Todo:</b>
-<ul>
-<li>I'm finishing up an interface so you can map names that don't quite match.
-<li>Versions with odd numbering schemes show as false positives. I'm working on catching common mismatches like 1.0_alpha1 and 1.0-alpha1
-
 <h1>Frequently Asked Questions about Meatoo</h1>
 <ol>
 <li><b>Q:</b> Package "foo" on Gentoo isn't the same software as package "foo" on Freshmeat, why isn't it mapped to the correct name?
 <br>
 <br>
-<b>A:</b> Meatoo maps Gentoo portage package names against Freshmeat package names automatically. I'm working on a registration system so people can sign up and correct name mappings.
+<b>A:</b> Meatoo maps Gentoo portage package names against Freshmeat package names automatically. If you find an incorrect match, click the edit icon to re-map the proper category/packagename to the Freshmeat name.
 <br>
 <br>
 <li><b>Q:</b> Can I get package release info via mail?
 <br>
 <br>
-<b>A:</b> Not at the moment. There is an RSS feed available for daily updates:<br>
+<b>A:</b> Not at the moment, we have no smtp server here. Got a server we can use? There is an RSS feed available for daily updates for all pacakges:<br>
 <br>
  http://gentooexperimental.org/static/meatoo.xml
  <br><br>
- Or by herd or maintainer email address:<br><br>
- http://gentooexperimental.org/meatoo/rss?herd=games<br>
- http://gentooexperimental.org/meatoo/rss?herd=whoever@gentoo.org
+ Or daily by herd or maintainer email address:<br><br>
+ http://gentooexperimental.org/meatoo/rss/games<br>
+ http://gentooexperimental.org/meatoo/rss/whoever@gentoo.org
 
  <br><br>
-<b>Note:</b> Freshmeat only updates their RDF database every 12 hours, so please don't set your client to read them at a lower interval.<br><br>
-There is also a command line <a href="http://dev.gentoo.org/~pythonhead/scripts/meatoo-0.0.5">tool</a> being worked on. 
+<b>Note:</b> Freshmeat only updates their RDF database every 12 hours (12am and 12pm UTC), so there is no need to set your client to read them at a lower interval.<br><br>
+There is also a command line <a href="http://dev.gentoo.org/~pythonhead/scripts/meatoo-0.0.6">tool</a> being worked on but is currently broken.
 <br>
 <br>
 <li><b>Q:</b> I love to file bug reports. Can I start filling up bugs.gentoo.org with version bump bugs?
 <br>
 <br>
 <b>A:</b> Please don't. A Gentoo developer may already be testing a package just released. If its been a reasonable amount of time, feel free to open a bug report requesting a new version.
+<br>
+<br>
+<li><b>Q:</b> Whats all this 'trove' stuff?</b><br><br>
+<b>A:</b> The troves are Freshmeats categorie. You can browse them to see which packages are not in portage. 
 </ol>
-
-<br><br>
 <br><br>
 <b>Miscellaneous:</b><br><br>
+Join #meatoo on Freenode and talk to pythonhead and rl03 if you have ideas or meatoo problems.
+<br><br>
 The meatoo database is populated with a Python script via cron once a day using 
  <a href="http://effbot.org/zone/celementtree.htm">celementtree</a> to parse the ~100 meg Freshmeat RDF file and <a href="http://sqlobject.org">sqlobject</a> to fill up a mysql database. The Meatoo
 website uses <a href="http://cherrypy.org">CherryPy</a> and <a href="http://cheetahtemplate.org">Cheetah</a>.
