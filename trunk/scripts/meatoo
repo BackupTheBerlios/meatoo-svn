@@ -1,0 +1,78 @@
+#!/usr/bin/python
+
+"""
+
+NAME: meatoo.py 
+
+DESC: Client for accessing meatoo database using XML-RPC
+
+VERSION: 0.0.5
+
+"""
+
+
+import xmlrpclib
+import optparse
+import sys
+
+[CAT, PN, DESC, PV, MAINTAINER, FM_DESC, FM_VERSION, FM_DATE,
+ FM_URL, CHANGELOG ] = [i for i in range(10)]
+
+
+server = xmlrpclib.ServerProxy("http://gentooexperimental.org/meatoo/xmlrpc")
+
+optParser = optparse.OptionParser()
+optParser.add_option( "-m", action="store", dest="maint", default=False,
+                        help="List packages by herd or maintainer email address.")
+optParser.add_option( "-p", action="store", dest="package", default=False,
+                        help="List by exact package name.")
+optParser.add_option( "-P", action="store", dest="partial_package", default=False,
+                        help="List by partial package name.")
+optParser.add_option( "-c", action="store", dest="catpackage", default=False,
+                        help="List by exact category/package name.")
+optParser.add_option( "-d", action="store", dest="date", default=False,
+                        help="List by Freshmeat release date.")
+optParser.add_option( "-t", action="store_true", dest="today", default=False,
+                        help="List today's Freshmeat releases.")
+options, remainingArgs = optParser.parse_args()
+
+
+def print_results(results):
+    """Print each line of results"""
+    if results[0][0] == "":
+        sys.exit()
+    for pkg in results:
+        print_line(pkg)  
+
+def print_line(pkg):
+    """Print a single line in a nice format"""
+    left = "%s/%s-%s [%s]" % (pkg[CAT], pkg[PN], pkg[PV], pkg[FM_VERSION])
+    if options.today:
+        print left.ljust(60) + pkg[MAINTAINER].lstrip()
+    elif options.package or options.partial_package:
+        print left + "  " + pkg[FM_DATE] + "  " + pkg[MAINTAINER]
+    else:
+        print left.ljust(60) + pkg[FM_DATE]
+
+def send_request():
+    """Send XML-RPC command"""
+    if options.package:
+        results = server.getPackage(options.package)
+    if options.partial_package:
+        results = server.getPartialPackage(options.partial_package)
+    elif options.catpackage:
+        results = server.getCatPackage(options.catpackage)
+    elif options.maint:
+        results = server.getMaintainer(options.maint)
+    elif options.date:
+        results = server.getDate(options.date)
+    elif options.today:
+        results = server.getLatest()
+    print_results(results)
+
+if options.maint or options.package or options.catpackage \
+    or options.partial_package or options.date or options.today:
+    send_request()
+else:
+    optParser.print_help()
+
