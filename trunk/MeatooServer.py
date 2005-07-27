@@ -123,9 +123,14 @@ class MyServer(cptools.PositionalParametersAware):
         yield footer()
 
     @needsLogin
-    def ignore(self, id, *args, **kwargs):
+    def ignore(self, pn, ver, *args, **kwargs):
         """Ignore particular version of pkg"""
-        pkg = Packages.get(id)
+        pkgs = Packages.select(AND(Packages.q.packageName == pn,
+                              Packages.q.latestReleaseVersion == ver))
+        print "PN", pn, "VER", ver
+        if pkgs.count() == 0:
+            yield self.error_form("Package not ignored.")
+        pkg = pkgs[0]
         template = Template('''
             <form method="get" action="/meatoo/ignore_action/">
             <div>
@@ -151,6 +156,7 @@ class MyServer(cptools.PositionalParametersAware):
     @needsLogin
     def ignore_action(self, pn, ver):
         """Process ignore form"""
+        timestamp = asctime(gmtime())
         try:
             pkg = Packages.select(AND(Packages.q.packageName == pn,
                                   Packages.q.latestReleaseVersion == ver))
@@ -158,10 +164,12 @@ class MyServer(cptools.PositionalParametersAware):
             if self.verbose:
                 print "Deleted match:", pn
         except:
-            pass
+            msg = "%s ERROR - Failed to ignore %s-%s" % (timestamp, pn, ver)
+            utils.admin_log_msg(msg)
+            yield self.error_form(msg)
+            return
         ignore = Ignores(packageName = pn, latestReleaseVersion = ver)
         username = accounts.get_logged_username()
-        timestamp = asctime(gmtime())
         msg = "%s %s IGNORE %s-%s" % (timestamp, username, pn, ver)
         utils.admin_log_msg(msg)
         template = Template('''Freshmeat version $ver of $pn ignored.
