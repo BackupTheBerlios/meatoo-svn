@@ -168,9 +168,9 @@ def delete_ignores():
             ignore = Ignores.select(Ignores.q.id == i.id)
             ignore[0].destroySelf()
 
-def query_sql(id):
-    """Fetch package by sql id"""
-    return Packages.select(Packages.q.id == id)
+def query_sql(fm_id):
+    """Fetch package by fm id"""
+    return Packages.select(Packages.q.id == fm_id)
 
 def check_known_good(fmName):
     """Check if pkg fmName exists in KnownGood db. Returns 0 if no match found, and cat/pn if found"""
@@ -194,27 +194,26 @@ def update_sql(desc, my_fm, cat, pn, pv, maints, higher):
     res = query_sql(my_fm['id'])
     if res.count():
         #Record exists, update it
-        try:
-            #print "UPDATE: ", pn, pv, my_fm['latestReleaseVersion']
-            res[0].set(fmId = my_fm['id'],
-                   packageName = true_pn,
-                   portageCategory = true_cat,
-                   portageDesc = desc,
-                   portageVersion = pv,
-                   maintainerName = maints,
-                   fmName = my_fm['fmName'],
-                   descShort = my_fm['descShort'],
-                   latestReleaseVersion = my_fm['latestReleaseVersion'],
-                   urlHomepage = my_fm['urlHomepage'],
-                   urlChangelog = my_fm['urlChangelog'],
-                   latestReleaseDate = my_fm['latestReleaseDate'],
-                   fmNewer = higher
-                  ) 
-        except:
-            print pn, "FAILED UPDATE", my_fm
+        #try:
+        #print "UPDATE: ", pn, pv, my_fm['latestReleaseVersion']
+        res[0].set(packageName = true_pn,
+               portageCategory = true_cat,
+               portageDesc = desc,
+               portageVersion = pv,
+               maintainerName = maints,
+               fmName = my_fm['fmName'],
+               descShort = my_fm['descShort'],
+               latestReleaseVersion = my_fm['latestReleaseVersion'],
+               urlHomepage = my_fm['urlHomepage'],
+               urlChangelog = my_fm['urlChangelog'],
+               latestReleaseDate = my_fm['latestReleaseDate'],
+               fmNewer = higher
+              ) 
+        #except:
+        #    print pn, "FAILED UPDATE", my_fm
     else:
         #Add new package
-        p = Packages(fmId = my_fm['id'],
+        p = Packages(id = int(my_fm['id']),
                      portageCategory = true_cat,
                      packageName = true_pn,
                      portageDesc = desc,

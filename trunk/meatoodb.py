@@ -44,8 +44,7 @@ class Packages(SQLObject):
 
     _connection = conn
 
-    _columns = [IntCol('fmId', notNull=1),
-                StringCol('portageCategory', length=64, notNull=1),
+    _columns = [StringCol('portageCategory', length=64, notNull=1),
                 StringCol('packageName', length=128, notNull=1),
                 StringCol('portageDesc', length=254, notNull=1),
                 StringCol('portageVersion', length=64, notNull=1),
