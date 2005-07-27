@@ -54,10 +54,10 @@ def send_new_passwd(address):
     body = '''Date: %s\n''' % datetime.datetime.now()
     body += '''To: <%s>\n''' % address
     body += '''From: "Meatoo Registration" <gentooexp@gmail.com>\n'''
-    body += '''Subject: Meatoo is ready for you.\n\n'''
+    body += '''Subject: Meatoo Registration Confirmation.\n\n'''
     body += '''You can now login to Meatoo and add, delete or modify entries.\n\n'''
     body += '''Your password is: %s\n''' % password
-    if send_email(address, body) == -1:
+    if send_email(body) == -1:
         return "There was an error sending email."
     else:
         accounts.add_user(username, password)
@@ -68,7 +68,7 @@ def mail_lost_passwd(username):
     password = accounts.get_user_passwd(username)
     body = '''Date: %s\n''' % datetime.datetime.now()
     body += '''To: <%s>\n''' % "%s@gentoo.org" % username
-    body += '''From: "Meatoo Admin" <gentooexp@gbody.com>\n'''
+    body += '''From: "Meatoo Admin" <gentooexp@gmail.com>\n'''
     body += '''Subject: Your lost Meatoo password.\n\n'''
     body += '''Tsk tsk!\n\n'''
     body += '''Your password is: %s\n''' % password
