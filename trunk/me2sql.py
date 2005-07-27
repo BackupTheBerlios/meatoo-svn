@@ -151,15 +151,22 @@ def crossref_gentoo(fm):
                     update_sql(desc, fm[pn], cat, pn, pv, maints, 0)
             del fm[pn]
 
-def delete_row(pn):
-    """Delete row by PN when portage ver catches up to fm version"""
-    #FIXME: unused
-    try:
-        pkg = Packages.select(Packages.q.packageName == pn)
-        pkg[0].destroySelf()
-        print "Deleted match:", pn
-    except:
-        pass
+def delete_ignores():
+    """Go through Ignores table and delete all matches"""
+    ignores = Ignores.select()
+    print "Removing ignored pkgs from db..."
+    for i in ignores:
+        pn = i.packageName
+        ver = i.latestReleaseVersion
+        print "Deleting %s-%s" % (pn, ver)
+        try:
+            pkg = Packages.select(AND(Packages.q.packageName == pn,
+                                      Packages.q.latestReleaseVersion == ver))
+            pkg[0].destroySelf()
+        except:
+            #Doesn't exist anymore so remove from Ignores table:
+            ignore = Ignores.select(Ignores.q.id == i.id)
+            ignore[0].destroySelf()
 
 def query_sql(fm_id):
     """Fetch package by fm id"""
@@ -286,6 +293,7 @@ if __name__ == '__main__':
     if options.update:
         fm = cPickle.load(open(FM_DICT, 'r'))
         crossref_gentoo(fm)
+        delete_ignores()
     if options.rss:
         my_rss.write_rss()
         #print len(fm.keys())
