@@ -257,7 +257,7 @@ def get_latest_fm(fm):
                          troveId = fm[pkg]['troveId'],
                          inPortage = port
                         )
-            print "NEW_ALL", fm[pkg]['fmName'], fm[pkg]['latestReleaseDate'], fm[pkg]['latestReleaseVersion'], fm[pkg]['troveId'], port
+            #print "NEW_ALL", fm[pkg]['fmName'], fm[pkg]['latestReleaseDate'], fm[pkg]['latestReleaseVersion'], fm[pkg]['troveId'], port
 
 def store_herds():
     """Store herds of each registered dev in the db"""
