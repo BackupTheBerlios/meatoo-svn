@@ -1,9 +1,10 @@
 
 <table><tr>
-<td width="12%">
+<td width="16%">
 #if not $my_herds
     <font size=-1>
     <a href='/meatoo/login'>Login</a><br><br>
+    <a href='/meatoo/signup'>New Account</a><br><br>
     <a href='/meatoo/lost_passwd'>Lost password?</a>
     </font>
 #end if
@@ -29,9 +30,9 @@
 #end for
 #end if
 </td>
-<td width="50%"><table><br><b>Latest:</b>
+<td width="55%"><table>
 #for $pkg in $packages
-#if $pkg.latestReleaseDate == $week[0] or $pkg.latestReleaseDate == $week[1]
+ #if $pkg.latestReleaseDate == $week[0] or $pkg.latestReleaseDate == $week[1]
     <tr class="alt">
     <td>
 
@@ -39,28 +40,37 @@
         ($pkg.id)
     #end if    
 
-    <b><a href="http://packages.gentoo.org/search/?sstring=%5E$pkg.packageName%24">
-    $pkg.portageCategory/$pkg.packageName-$pkg.portageVersion</a> [
-    <a class="nav" href="http://freshmeat.net/projects/$pkg.packageName/" title="Freshmeat Latest Release">$pkg.latestReleaseVersion</a> ]</b>
-    $pkg.latestReleaseDate 
-
-    <a class="nav" href="/meatoo/ignore/$pkg.packageName/$pkg.latestReleaseVersion" title="Ignore this version of this package.">
+    <b><a class="nav" 
+    href="http://packages.gentoo.org/search/?sstring=%5E$pkg.packageName%24" 
+    title="Latest portage version">
+    $pkg.portageCategory/$pkg.packageName-$pkg.portageVersion</a>
+    [ <a class="nav" 
+    href="http://freshmeat.net/projects/$pkg.packageName/" 
+    title="Freshmeat Latest Release">$pkg.latestReleaseVersion</a> ]</b>
+    &nbsp;&nbsp;&nbsp;
+    <a class="nav" 
+    href="/meatoo/ignore/$pkg.packageName/$pkg.latestReleaseVersion" 
+    title="Ignore this version of this package.">
     <img border=0 src="/meatoo/static/edit.png" alt="Ignore"></a>
     <a class="nav" href="/meatoo/add_known/$pkg.fmName" title="Edit Portage name">
     <img border=0 src="/meatoo/static/edit.gif"></a>
     <a class="nav" href="$pkg.urlHomepage" title="Project Homepage">
     <img border=0 src="/meatoo/static/home.png"></a>
 
-    <a class="nav" href="http://freshmeat.net/redir/$pkg.packageName/$pkg.urlChangelog/url_changelog/" title="View ChangeLog">
+    <a class="nav" 
+    href="http://freshmeat.net/redir/$pkg.packageName/$pkg.urlChangelog/"
+    title="Upstream ChangeLog">
     <img border=0 src="/meatoo/static/changelog.gif" alt="changelog"></a>
 
-    </td></tr><tr><td><br>
-    $pkg.portageDesc
-    <br><br>
+    </td></tr>
+<tr><td>
+    <p><font size=-1>$pkg.latestReleaseDate</font></p>
+    <b>Portage description:</b><br>
+    $pkg.portageDesc<br><br>
     <b>Freshmeat description:</b><br>
     $pkg.descShort<br><br>
-    <b>Maintainers:</b> $pkg.maintainerName<br><br></td></tr>
-#end if
+    <b>Maintainers:</b> $pkg.maintainerName<br><br><hr></td></tr>
+ #end if
 #end for
 </table>
 </td>
@@ -68,29 +78,24 @@
 <table>
 #set $i = 0
 #while $i < 5
-    <tr class="alt"><td colspan=3><b>$week[$i]</b></tr>
+    <tr class="alt"><td><b>$week[$i]</b></tr>
     #for $pkg in $packages
         #if $pkg.latestReleaseDate == $week[$i]
             <tr><td>
-            <a href="http://packages.gentoo.org/search/?sstring=%5E$pkg.packageName%24">
-            $pkg.portageCategory/$pkg.packageName-$pkg.portageVersion</a> [
-            <a class="nav" href="http://freshmeat.net/projects/$pkg.packageName/" title="Freshmeat Latest Release">$pkg.latestReleaseVersion</a> ]
-    </td>
+            <a class="nav"
+            href="/meatoo/details/$pkg.portageCategory/$pkg.packageName"
+            title="Package details">
+            $pkg.portageCategory/$pkg.packageName-$pkg.portageVersion</a>
 
-    <td>
-    <a class="nav" href="/meatoo/ignore/$pkg.packageName/$pkg.latestReleaseVersion"
-         title="Ignore this version of this package.">
-    <img border=0 src="/meatoo/static/edit.png" alt="Ignore"></a>
-    <a class="nav" href="/meatoo/add_known/$pkg.fmName" title="Edit Portage name">
-    <img border=0 src="/meatoo/static/edit.gif"></a>
-    <a class="nav" href="$pkg.urlHomepage" title="Project Homepage">
-    <img border=0 src="/meatoo/static/home.png"></a>
-
-    <a class="nav" href="http://freshmeat.net/redir/$pkg.packageName/$pkg.urlChangelog/url_changelog/" title="View ChangeLog">
-    <img border=0 src="/meatoo/static/changelog.gif" alt="changelog"></a>
-            </td></tr>
+            <a class="nav"
+            href="/meatoo/details/$pkg.portageCategory/$pkg.packageName"
+            title="Package details">
+            [ $pkg.latestReleaseVersion ]</a>
+            </td>
+            </tr>
         #end if
     #end for
     #set $i += 1 
 #end while
 </table></td></tr></table>
+

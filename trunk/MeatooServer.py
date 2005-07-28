@@ -40,6 +40,7 @@ class MyServer(cptools.PositionalParametersAware):
         self.debug = debug
         self.verbose = verbose
         self._body_tmpl = templates.body()
+        self._details_tmpl = templates.details()
         self._search_tmpl = templates.search()
         self._showtrove_tmpl = templates.showtrove()
         self._change_passwd_tmpl = templates.change_passwd()
@@ -121,6 +122,15 @@ class MyServer(cptools.PositionalParametersAware):
         yield header()
         yield self._body_tmpl.respond()
         yield footer()
+
+    def details(self, cat, pn):
+        """Show details of individual package"""
+        pkgs = Packages.select(AND(Packages.q.portageCategory == cat,
+                                   Packages.q.packageName == pn))
+
+        self._details_tmpl.pkg = pkgs[0]
+        content = self._details_tmpl.respond()
+        yield self.plain_page(content)
 
     @needsLogin
     def ignore(self, pn, ver, *args, **kwargs):
@@ -492,7 +502,7 @@ class MyServer(cptools.PositionalParametersAware):
             <form method="get" action="/meatoo/lost_passwd_action/">
             <div>
             <br>Enter your Gentoo developer username: 
-            <input type='input' name='username' value=""></td>
+            <input type='input' name='username' value="">
             <input type="submit" value="Send" />
             </div>
             </form>"""

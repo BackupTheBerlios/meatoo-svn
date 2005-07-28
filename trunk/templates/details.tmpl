@@ -1,0 +1,31 @@
+
+    <b><a class="nav" 
+    href="http://packages.gentoo.org/search/?sstring=%5E$pkg.packageName%24" 
+    title="Latest portage version">
+    $pkg.portageCategory/$pkg.packageName-$pkg.portageVersion</a>
+    [ <a class="nav" 
+    href="http://freshmeat.net/projects/$pkg.packageName/" 
+    title="Freshmeat Latest Release">$pkg.latestReleaseVersion</a> ]</b>
+    &nbsp;&nbsp;&nbsp;
+    <a class="nav" 
+    href="/meatoo/ignore/$pkg.packageName/$pkg.latestReleaseVersion" 
+    title="Ignore this version of this package.">
+    <img border=0 src="/meatoo/static/edit.png" alt="Ignore"></a>
+    <a class="nav" href="/meatoo/add_known/$pkg.fmName" title="Edit Portage name">
+    <img border=0 src="/meatoo/static/edit.gif"></a>
+    <a class="nav" href="$pkg.urlHomepage" title="Project Homepage">
+    <img border=0 src="/meatoo/static/home.png"></a>
+
+    <a class="nav" 
+    href="http://freshmeat.net/redir/$pkg.packageName/$pkg.urlChangelog/url_changelog/"
+    title="View ChangeLog">
+    <img border=0 src="/meatoo/static/changelog.gif" alt="changelog"></a>
+
+    </td></tr>
+<tr><td>
+    <p><font size=-1>$pkg.latestReleaseDate</font></p>
+    <b>Portage description:</b><br>
+    $pkg.portageDesc<br><br>
+    <b>Freshmeat description:</b><br>
+    $pkg.descShort<br><br>
+    <b>Maintainers:</b> $pkg.maintainerName<br><br><hr></td></tr>
