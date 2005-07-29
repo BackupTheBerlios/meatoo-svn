@@ -113,7 +113,9 @@ class Stats(SQLObject):
                ]
 
 class Allfm(SQLObject):
+
     """Contains all FM releases for the past week"""
+
     _connection = conn
 
     _columns = [StringCol('fmName', length=128, notNull=1),
@@ -127,12 +129,33 @@ class Allfm(SQLObject):
                ]
 
 class Troves(SQLObject):
+
     """Contains all FM troves"""
+
     _connection = conn
 
     _columns = [StringCol('fId', length=32, notNull=1),
                 StringCol('name', length=254, notNull=1)
                ]
+
+
+class Subscribers(SQLObject):
+    """List of users joined with table of herd subscriptions"""
+
+    _connection = conn
+
+    username = StringCol(alternateID=True, length=32)
+    herds = RelatedJoin('Subscriptions')
+
+class Subscriptions(SQLObject):
+    """List of herds joined with table of users subscribed"""
+
+    _connection = conn
+
+    herd = StringCol(alternateID=True, length=64)
+    users = RelatedJoin('Subscribers')
+
+
 
 Packages.createTable(ifNotExists = True)
 Ignores.createTable(ifNotExists = True)
@@ -141,3 +164,5 @@ Users.createTable(ifNotExists = True)
 Stats.createTable(ifNotExists = True)
 Allfm.createTable(ifNotExists = True)
 Troves.createTable(ifNotExists = True)
+Subscriptions.createTable(ifNotExists = True)
+Subscribers.createTable(ifNotExists = True)

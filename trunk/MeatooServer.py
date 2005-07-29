@@ -15,6 +15,7 @@ import templates
 from sections import *
 from meatoodb import *
 from auth import *
+import subscription
 
 class exposed(type):
 
@@ -131,6 +132,66 @@ class MyServer(cptools.PositionalParametersAware):
         self._details_tmpl.pkg = pkgs[0]
         content = self._details_tmpl.respond()
         yield self.plain_page(content)
+
+    
+    @needsLogin
+    def subscribe(self, add_herd = None, *args, **kwargs):
+        """Subscribe to email notifications of pkg bumps"""
+        username = accounts.get_logged_username()
+        subscriber = subscription.get_subscriber(username)
+        herds = ['']
+        msg = ""
+        if subscriber.count():
+            herds = subscription.get_subscriptions(username)
+        if add_herd:
+            if add_herd in herds:
+                msg = "Already subscribed to %s" % add_herd
+            else:
+                subscription.add_user_subscription(username, add_herd)
+                herds.append(add_herd)
+        template = Template('''
+            <tr><td>Add herds or maintainer's email address for notification by email when new versions appear on Freshmeat.</td></tr>
+            <tr><td><b>$msg</b></td></tr>
+
+            <tr>
+              <td>
+                <form method="get" action="/meatoo/subscribe/">
+                <input type='submit' value="Add">
+                <input type='input' name='add_herd' value=""></td>
+                </form>
+              </td></tr>
+            <tr><td>
+                <form method="get" action="/meatoo/unsubscribe/">
+                <select name=herds size=10 multiple>
+                #for $herd in $herds
+                    <option value="$herd">$herd
+                #end for
+                </select>
+                <div>
+                <input type='submit' value="Remove">
+                </div>
+                </form>
+                </td>
+            </tr>
+            ''', [locals(), globals()])
+        yield self.plain_page(template.respond())
+
+    @needsLogin
+    def unsubscribe(self, herds = None, *args, **kwargs):
+        """Remove herd from user's list of subscriptions"""
+        #If html form only returns one value its a string,
+        #otherwise its a list. 
+        #This seems retarted, report upstream to cherrypy?
+        if not herds:
+            httptools.redirect("/subscribe")
+        if type(herds) != types.ListType:
+            herds = [herds]
+        username = accounts.get_logged_username()
+        user = subscription.get_subscriber(username)[0]
+        for h in herds:
+            nuke_herd = subscription.query_subscription(h)[0]
+            user.removeSubscriptions(nuke_herd)
+        httptools.redirect("/subscribe")
 
     @needsLogin
     def ignore(self, pn, ver, *args, **kwargs):

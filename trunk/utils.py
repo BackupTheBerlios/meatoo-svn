@@ -14,17 +14,18 @@ import tempfile
 import ConfigParser
 
 import PyRSS2Gen
-import accounts
-import herds
 import cherrypy
 
 from meatoodb import *
+import accounts
+import herds
 
 CONFIG = "./meatoo.conf"
 config = ConfigParser.ConfigParser()
 config.read(CONFIG)
 
 ADMIN_LOG = config.get("log", "admin_log")
+
 
 def send_email(body):
     """Send email. Return -1 if fail"""
