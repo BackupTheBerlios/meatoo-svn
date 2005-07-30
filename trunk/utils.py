@@ -80,6 +80,12 @@ def get_dload_size(url):
     file = urllib.FancyURLopener().open(url)
     return int(file.headers['content-length'])
 
+def get_today(offset = 0):
+    """Return todays format like 2005-01-28"""
+    #offset is number of days past. 1 = yesterday
+    now = gmtime(mktime(gmtime()) - (86400 * offset) )
+    return "%s-%02d-%02d" % (now[0], now[1], now[2])
+
 def get_days():
     """Return date strings for last five days"""
     week = []

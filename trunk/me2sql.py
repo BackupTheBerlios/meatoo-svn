@@ -31,7 +31,7 @@ import utils
 
 FM_DICT = "/var/tmp/meatoo/fmdb"
 TROVES_DICT = "/var/tmp/meatoo/trdb"
-XML_FILE = "/usr/share/meatoo/meatoo.xml"
+XML_FILE = "/var/www/localhost/htdocs/static/meatoo.xml"
 TREE_FILE = "/var/tmp/meatoo/porttree"
 
 class RSS_Generator:
@@ -141,13 +141,16 @@ def crossref_gentoo(fm):
                     # -1 if fm is higher
                 except:
                     #This means its a fm version that won't compare with Gentoo's
-                    #version. We accept it as good. e.g. pkgfoo_BeTa.12
+                    #version. We accept it as being higher. e.g. pkgfoo_BeTa.12
                     res = -1
                 desc = portage.portdb.aux_get(highest, ["DESCRIPTION"])[0]
                 maints = get_maints(cpn)
                 if res == -1:
+                    #freshmeat version is higher than portage's
+                    #OR freshmeat's version is so screwy we assume its higher
                     update_sql(desc, fm[pn], cat, pn, pv, maints, 1)
                 else:
+                    #freshmeat version is equal or lower that portage's
                     update_sql(desc, fm[pn], cat, pn, pv, maints, 0)
             del fm[pn]
 
@@ -184,7 +187,6 @@ def check_known_good(fmName):
 
 def update_sql(desc, my_fm, cat, pn, pv, maints, higher):
     """Add or update pkg (if exists)"""
-
     pkg_good = check_known_good(my_fm['fmName'])
     if pkg_good:
         true_cat, true_pn = pkg_good
@@ -194,23 +196,19 @@ def update_sql(desc, my_fm, cat, pn, pv, maints, higher):
     res = query_sql(my_fm['id'])
     if res.count():
         #Record exists, update it
-        #try:
-        #print "UPDATE: ", pn, pv, my_fm['latestReleaseVersion']
         res[0].set(packageName = true_pn,
-               portageCategory = true_cat,
-               portageDesc = desc,
-               portageVersion = pv,
-               maintainerName = maints,
-               fmName = my_fm['fmName'],
-               descShort = my_fm['descShort'],
-               latestReleaseVersion = my_fm['latestReleaseVersion'],
-               urlHomepage = my_fm['urlHomepage'],
-               urlChangelog = my_fm['urlChangelog'],
-               latestReleaseDate = my_fm['latestReleaseDate'],
-               fmNewer = higher
-              ) 
-        #except:
-        #    print pn, "FAILED UPDATE", my_fm
+                   portageCategory = true_cat,
+                   portageDesc = desc,
+                   portageVersion = pv,
+                   maintainerName = maints,
+                   fmName = my_fm['fmName'],
+                   descShort = my_fm['descShort'],
+                   latestReleaseVersion = my_fm['latestReleaseVersion'],
+                   urlHomepage = my_fm['urlHomepage'],
+                   urlChangelog = my_fm['urlChangelog'],
+                   latestReleaseDate = my_fm['latestReleaseDate'],
+                   fmNewer = higher
+                  ) 
     else:
         #Add new package
         p = Packages(id = int(my_fm['id']),
@@ -228,8 +226,27 @@ def update_sql(desc, my_fm, cat, pn, pv, maints, higher):
                      fmNewer = higher
                     )
 
-        print "NEW", true_pn, my_fm['latestReleaseDate'], pv, my_fm['latestReleaseVersion']
-        my_rss.new_item(true_cat, true_pn, pv, my_fm['latestReleaseVersion'], desc, my_fm['descShort'], my_fm['latestReleaseDate'])
+    #These packages will be added to RSS feeds and sent in email subscriptions:
+    if higher and not query_ignore(true_pn, my_fm['latestReleaseVersion']):
+        if my_fm['latestReleaseDate'] == utils.get_today(1): 
+            print "SUBSCRIPTION", true_pn, my_fm['latestReleaseDate'], 
+                    pv, my_fm['latestReleaseVersion']
+            my_rss.new_item(true_cat,
+                            true_pn,
+                            pv,
+                            my_fm['latestReleaseVersion'],
+                            desc,
+                            my_fm['descShort'],
+                            my_fm['latestReleaseDate']
+                            )
+                
+
+def query_ignore(pn, fm_ver):
+    """Return True if ignored"""
+    ignore = Ignores.select(AND(Ignores.q.packageName == pn,
+                                Ignores.q.latestReleaseVersion == fm_ver))
+    if ignore.count():
+        return True
 
 def get_latest_fm(fm):
     """Store 1 week's worth of all FM releases in a table"""
