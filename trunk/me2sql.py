@@ -194,23 +194,28 @@ def update_sql(desc, my_fm, cat, pn, pv, maints, higher):
         true_cat, true_pn = cat, pn
         
     res = query_sql(my_fm['id'])
+    new = 0
     if res.count():
         #Record exists, update it
+        if res[0].latestReleaseVersion != my_fm['latestReleaseVersion']:
+            if higher:
+                new = 1
         res[0].set(packageName = true_pn,
-                   portageCategory = true_cat,
-                   portageDesc = desc,
-                   portageVersion = pv,
-                   maintainerName = maints,
-                   fmName = my_fm['fmName'],
-                   descShort = my_fm['descShort'],
-                   latestReleaseVersion = my_fm['latestReleaseVersion'],
-                   urlHomepage = my_fm['urlHomepage'],
-                   urlChangelog = my_fm['urlChangelog'],
-                   latestReleaseDate = my_fm['latestReleaseDate'],
-                   fmNewer = higher
-                  ) 
+                       portageCategory = true_cat,
+                       portageDesc = desc,
+                       portageVersion = pv,
+                       maintainerName = maints,
+                       fmName = my_fm['fmName'],
+                       descShort = my_fm['descShort'],
+                       latestReleaseVersion = my_fm['latestReleaseVersion'],
+                       urlHomepage = my_fm['urlHomepage'],
+                       urlChangelog = my_fm['urlChangelog'],
+                       latestReleaseDate = my_fm['latestReleaseDate'],
+                       fmNewer = higher
+                      ) 
     else:
         #Add new package
+        new = 1
         p = Packages(id = int(my_fm['id']),
                      portageCategory = true_cat,
                      packageName = true_pn,
@@ -227,18 +232,16 @@ def update_sql(desc, my_fm, cat, pn, pv, maints, higher):
                     )
 
     #These packages will be added to RSS feeds and sent in email subscriptions:
-    if higher and not query_ignore(true_pn, my_fm['latestReleaseVersion']):
-        if my_fm['latestReleaseDate'] == utils.get_today(1): 
-            print "SUBSCRIPTION", true_pn, my_fm['latestReleaseDate'], 
-                    pv, my_fm['latestReleaseVersion']
-            my_rss.new_item(true_cat,
-                            true_pn,
-                            pv,
-                            my_fm['latestReleaseVersion'],
-                            desc,
-                            my_fm['descShort'],
-                            my_fm['latestReleaseDate']
-                            )
+    if new and not query_ignore(true_pn, my_fm['latestReleaseVersion']):
+        print "SUBSCRIPTION", true_pn, my_fm['latestReleaseDate'], pv, my_fm['latestReleaseVersion']
+        my_rss.new_item(true_cat,
+                        true_pn,
+                        pv,
+                        my_fm['latestReleaseVersion'],
+                        desc,
+                        my_fm['descShort'],
+                        my_fm['latestReleaseDate']
+                        )
                 
 
 def query_ignore(pn, fm_ver):
