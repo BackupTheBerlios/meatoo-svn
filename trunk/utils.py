@@ -167,6 +167,6 @@ def del_cookie(name):
 def admin_log_msg(msg):
     """Adds line to log file"""
     f = open(ADMIN_LOG, "a")
-    f.write(msg)
+    f.write("%s\n" % msg)
     f.close()
 
