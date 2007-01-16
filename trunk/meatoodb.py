@@ -32,17 +32,14 @@ HOST = config.get("sqlobject", "host")
 USERNAME = config.get("sqlobject", "username")
 PASSWORD = config.get("sqlobject", "password")
 
-#if DATABASE == "sqlite":
-#    #conn = connectionForURI("sqlite:///%s" % FILENAME)
-#    conn = dbconnection.ConnectionHub()
-#else:
-#    conn = connectionForURI("mysql://%s:%s@%s/%s" % \
-#                            (USERNAME, PASSWORD, HOST, DB_NAME))
-
 conn = dbconnection.ConnectionHub()
 
 def connect(threadIndex):
-    conn.threadConnection = SQLiteConnection('sqlitedb')
+    if DATABASE == "sqlite":
+        conn.threadConnection = connectionForURI("sqlite:///%s" % FILENAME)
+    else:
+        conn.threadConnection = connectionForURI("mysql://%s:%s@%s/%s" % \
+                                (USERNAME, PASSWORD, HOST, DB_NAME))
 
 class Packages(SQLObject):
 
@@ -135,6 +132,7 @@ class Troves(SQLObject):
     name = StringCol(length=254, notNull=1)
 
 if __name__ == "__main__":
+    #Initialize database tables if necessary
     connection_thread = connect(0)
     Packages.createTable(ifNotExists = True)
     Ignores.createTable(ifNotExists = True)
@@ -143,3 +141,4 @@ if __name__ == "__main__":
     Stats.createTable(ifNotExists = True)
     Allfm.createTable(ifNotExists = True)
     Troves.createTable(ifNotExists = True)
+
