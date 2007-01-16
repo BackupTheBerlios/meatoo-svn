@@ -1,7 +1,7 @@
 
 <b>Search results for:</b> $srch
-<p>Show packages needing a version <a href="/meatoo/search/short/$srch/$type">bump</a>
-or <a href="/meatoo/search/long/$srch/$type">all</a> releases.</p>
+<p>Show packages needing a version <a href="/search/short/$srch/$type">bump</a>
+or <a href="/search/long/$srch/$type">all</a> releases.</p>
 <table>
 <tr> <th>Portage Name</th> <th>Portage Version</th>
 <th>Freshmeat Version</th> <th>Freshmeat Release Date</th> 
@@ -10,7 +10,7 @@ or <a href="/meatoo/search/long/$srch/$type">all</a> releases.</p>
 #for $pkg in $packages
     <tr class="alt">
     <td><a class="nav"
-        href="/meatoo/details/$pkg.portageCategory/$pkg.packageName"
+        href="/details/$pkg.portageCategory/$pkg.packageName"
         title="Package details">
         $pkg.portageCategory/$pkg.packageName
         </a></td>
@@ -21,7 +21,7 @@ or <a href="/meatoo/search/long/$srch/$type">all</a> releases.</p>
     #end if
     <td><a href="http://freshmeat.net/projects/$pkg.packageName/">$pkg.latestReleaseVersion</a>
     <a class="nav" href="http://freshmeat.net/redir/$pkg.packageName/$pkg.urlChangelog/url_changelog/" title="Upstream ChangeLog">
-    <img border=0 src="/meatoo/static/changelog.gif"></a>
+    <img border=0 src="/static/changelog.gif"></a>
     </td><td>$pkg.latestReleaseDate</td>
     <td>$pkg.maintainerName</td>
     </tr>

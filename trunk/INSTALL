@@ -38,3 +38,24 @@ me2dload -d -t
 me2sql -u -r
 
 
+To run behind Apache:
+
+This will allow you to use a vhost and let Apache serve static content which is a bit more efficient than CherryPy.
+You'll need mod_rewrite enabled in Apache.
+
+Sample vhost config section with cherrypy server running on port 8099:
+
+NameVirtualHost 192.168.1.111:80
+
+<VirtualHost 192.168.1.111:80>
+    ServerAdmin webmaster@meatoo.kicks-ass.net
+    ServerName meatoo.kicks-ass.net
+    RewriteEngine on
+    RewriteRule ^/static/(.*) /usr/share/meatoo/$1 [L]
+    RewriteRule ^/(.*) http://127.0.0.1:8099/$1 [P]
+    #RewriteLog logs/rewrite.meatoo.log
+    #RewriteLogLevel 9
+    ErrorLog @rel_logfiledir@/meatoo.kicks-ass.net-error_log
+    CustomLog @rel_logfiledir@/meatoo.kicks-ass.net-access_log common
+</VirtualHost>
+

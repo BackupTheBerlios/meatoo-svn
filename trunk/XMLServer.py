@@ -1,10 +1,9 @@
 
 from time import *
 
-import PyRSS2Gen
 import cherrypy
 
-import meatoodb
+from meatoodb import *
 
 
 class MyServer:
@@ -14,14 +13,6 @@ class MyServer:
         self.config = config
         self.debug = debug
         self.verbose = verbose
-
-    #def _cpOnError():
-    #    """Enter pdb on tracebacks"""
-    #    if self.debug:
-    #        import pdb
-    #        pdb.set_trace()
-    #    cherrypy._cputil._cpOnError()
-    #_cpOnError = staticmethod(_cpOnError)
 
     def _parsePackages(self, pkgs):
         """Parse Packages into a list of lists"""
@@ -45,6 +36,23 @@ class MyServer:
 
             i += 1
         return results
+
+    @cherrypy.expose
+    def getLast(self):
+        """Get last 20"""
+        packages = Packages.select()
+        packages = packages.orderBy('latestReleaseDate').reversed()
+        i = 0
+        pkgs = []
+        for p in packages:
+            print p.packageName, p.portageVersion, p.latestReleaseVersion, p.latestReleaseDate
+            if i >= 20:
+                break
+            if p.latestReleaseVersion != p.portageVersion:
+                i += 1
+                pkgs.append(p)
+        return self._parsePackages(pkgs)
+
 
     @cherrypy.expose
     def getLatest(self):

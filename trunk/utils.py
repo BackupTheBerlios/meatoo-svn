@@ -52,7 +52,7 @@ def send_new_passwd(address):
     if accounts.get_user_passwd(username):
         return "You already have an account."
 
-    body = '''Date: %s\n''' % datetime.datetime.now()
+    body = '''Date: <%s>\n''' % ctime(time())
     body += '''To: <%s>\n''' % address
     body += '''From: "Meatoo Registration" <gentooexp@gmail.com>\n'''
     body += '''Subject: Meatoo Registration Confirmation.\n\n'''
@@ -67,7 +67,7 @@ def send_new_passwd(address):
 def mail_lost_passwd(username):
     """Email existing password to user"""
     password = accounts.get_user_passwd(username)
-    body = '''Date: %s\n''' % datetime.datetime.now()
+    body = '''Date: <%s>\n''' % ctime(time())
     body += '''To: <%s>\n''' % "%s@gentoo.org" % username
     body += '''From: "Meatoo Admin" <gentooexp@gmail.com>\n'''
     body += '''Subject: Your lost Meatoo password.\n\n'''
@@ -126,7 +126,7 @@ def set_troves_session():
 def generate_rss(packages, herd):
     """Return dynamic RSS feed for given packages"""
     if not packages.count():
-        return """<?xml version="1.0" encoding="iso-8859-1"?><rss version="2.0"><channel><title>Meatoo - Gentoo vs. Freshmeat Releases</title><link>http://www.gentooexperimental.org/meatoo</link><description>The latest Freshmeat releases with matching Gentoo versions.</description><lastBuildDate>%s</lastBuildDate><generator>PyRSS2Gen-0.1.1</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Herd %s has no entries.</title><link>http://gentooexperimental.org/meatoo/</link><description>There are no entries for %s</description><pubDate>%s</pubDate></item></channel></rss>""" % (datetime.datetime.utcnow(), herd, herd, datetime.datetime.utcnow())
+        return """<?xml version="1.0" encoding="iso-8859-1"?><rss version="2.0"><channel><title>Meatoo - Gentoo vs. Freshmeat Releases</title><link>http://meatoo.gentooexperimental.org/</link><description>The latest Freshmeat releases with matching Gentoo versions.</description><lastBuildDate>%s</lastBuildDate><generator>PyRSS2Gen-0.1.1</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Herd %s has no entries.</title><link>http://meatoo.gentooexperimental.org/</link><description>There are no entries for %s</description><pubDate>%s</pubDate></item></channel></rss>""" % (datetime.datetime.utcnow(), herd, herd, datetime.datetime.utcnow())
     items = []
     for pkg in packages:
         items.append(PyRSS2Gen.RSSItem(
@@ -134,13 +134,13 @@ def generate_rss(packages, herd):
                 (pkg.portageCategory, pkg.packageName, pkg.portageVersion, \
                  pkg.latestReleaseVersion),
             description = "Freshmeat Release Date: %s<br><br><b>Portage desc:</b><br> %s<br><br><b>Freshmeat desc:</b><br> %s<br>http://freshmeat.net/projects/%s/" % (pkg.latestReleaseDate, pkg.portageDesc, pkg.descShort, pkg.packageName),
-            link = "http://gentooexperimental.org/meatoo/",
+            link = "http://meatoo.gentooexperimental.org/",
             pubDate = datetime.datetime.utcnow()
             ))
 
     rss = PyRSS2Gen.RSS2(
         title = "Meatoo - Gentoo vs. Freshmeat Releases",
-        link = "http://www.gentooexperimental.org/meatoo",
+        link = "http://meatoo.gentooexperimental.org/",
         description = "The latest Freshmeat releases with matching Gentoo versions.",
         lastBuildDate = datetime.datetime.utcnow(),
         items = items)

@@ -11,8 +11,6 @@ Contributor: Renat Lumpau
 
 """
 
-from Cheetah.Template import Template
-
 from commands import getstatusoutput
 
 

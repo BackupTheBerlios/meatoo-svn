@@ -20,6 +20,7 @@ from commands import getstatusoutput
 import cPickle
 import datetime
 import optparse
+import shutil
 
 import PyRSS2Gen
 import portage
@@ -33,6 +34,9 @@ FM_DICT = "/var/tmp/meatoo/fmdb"
 TROVES_DICT = "/var/tmp/meatoo/trdb"
 XML_FILE = "/var/www/localhost/htdocs/static/meatoo.xml"
 TREE_FILE = "/var/tmp/meatoo/porttree"
+
+#Email subscription dict
+subs = {}
 
 class RSS_Generator:
 
@@ -60,12 +64,16 @@ class RSS_Generator:
             lastBuildDate = datetime.datetime.now(),
             items = self.items)
         rss.write_xml(open(XML_FILE, "w"))
+        #In case people are using the old location:
+        shutil.copy(XML_FILE, "/usr/share/meatoo/")
+
 
 my_rss =  RSS_Generator()
 
 def get_maints(cpn):
     """Return maintainers for CPN"""
     cmd = "herdstat -q -n -m %s" % cpn
+    #print cmd
     status, output = getstatusoutput(cmd)
     m = output.splitlines()
     if status or m[1].strip() == "No metadata.xml":
@@ -142,12 +150,14 @@ def crossref_gentoo(fm):
                 except:
                     #This means its a fm version that won't compare with Gentoo's
                     #version. We accept it as being higher. e.g. pkgfoo_BeTa.12
+                    #FIXME: Lets add an sql field for these and only show ignore
+                    #icon for these. Make a filter on the website to just show them.
                     res = -1
                 desc = portage.portdb.aux_get(highest, ["DESCRIPTION"])[0]
                 maints = get_maints(cpn)
                 if res == -1:
                     #freshmeat version is higher than portage's
-                    #OR freshmeat's version is so screwy we assume its higher
+                    #or freshmeat's version is so screwy we assume its higher
                     update_sql(desc, fm[pn], cat, pn, pv, maints, 1)
                 else:
                     #freshmeat version is equal or lower that portage's
@@ -232,17 +242,19 @@ def update_sql(desc, my_fm, cat, pn, pv, maints, higher):
                     )
 
     #These packages will be added to RSS feeds and sent in email subscriptions:
-    if new and not query_ignore(true_pn, my_fm['latestReleaseVersion']):
-        print "SUBSCRIPTION", true_pn, my_fm['latestReleaseDate'], pv, my_fm['latestReleaseVersion']
-        my_rss.new_item(true_cat,
-                        true_pn,
-                        pv,
-                        my_fm['latestReleaseVersion'],
-                        desc,
-                        my_fm['descShort'],
-                        my_fm['latestReleaseDate']
-                        )
-                
+    if higher and new and not query_ignore(true_pn, my_fm['latestReleaseVersion']):
+        add_subscription_item(true_cat,
+                              true_pn,
+                              pv,
+                              my_fm['latestReleaseVersion'],
+                              desc,
+                              my_fm['descShort'],
+                              my_fm['latestReleaseDate'] )
+
+def add_subscription_item(cat, pn, pv, fm_pv, desc, fm_desc, date):
+    """Add item to RSS feed and email subscription list"""
+    print "NEW ", cat, pn, pv, fm_pv, desc, fm_desc, date
+    my_rss.new_item(cat, pn, pv, fm_pv, desc, fm_desc, date)
 
 def query_ignore(pn, fm_ver):
     """Return True if ignored"""
@@ -289,8 +301,30 @@ def store_troves(tr):
     for t in tr.keys():
         Troves(fId = tr[t]['id'], name = tr[t]['name'] )
 
-if __name__ == '__main__':
 
+def generate_latest_rss():
+    """Generate RSS file of last 30 items"""
+    packages = Packages.select()
+    packages = packages.orderBy('latestReleaseDate').reversed()
+    #packages = packages[:0]
+    i = 0
+    for p in packages:
+        if i >= 30: 
+            break
+        if p.portageVersion != p.latestReleaseVersion:
+            print p.packageName, p.portageVersion, p.latestReleaseVersion, p.latestReleaseDate
+            i +=1
+            my_rss.new_item(p.portageCategory,
+                            p.packageName,
+                            p.portageVersion,
+                            p.latestReleaseVersion,
+                            p.portageDesc,
+                            p.descShort,
+                            p.latestReleaseDate)
+
+    my_rss.write_rss()
+
+if __name__ == '__main__':
     optParser = optparse.OptionParser()
     optParser.add_option( "-u", action="store_true", dest="update", default=False,
                             help="Update database of packages.")
@@ -302,21 +336,25 @@ if __name__ == '__main__':
                             help="Update database of all latest FM releases.")
     optParser.add_option( "-t", action="store_true", dest="troves", default=False,
                             help="Update database of FM troves.")
+    optParser.add_option( "-A", action="store_true", dest="all", default=False,
+                            help="Do all options: -u -r -d -l -t")
     options, remainingArgs = optParser.parse_args()
     if len(sys.argv) == 1:
         optParser.print_help()
         sys.exit()
 
-    if options.rss and not options.update:
-        print "You must update (-u) in order to write an RSS file (-r)"
-        sys.exit(1)
+    if options.all:
+        options.update = True
+        options.herds = True
+        options.rss = True
+        options.latest = True
+        options.troves = True
     if options.update:
         fm = cPickle.load(open(FM_DICT, 'r'))
         crossref_gentoo(fm)
         delete_ignores()
     if options.rss:
-        my_rss.write_rss()
-        #print len(fm.keys())
+        generate_latest_rss()
     if options.herds:
         store_herds()
     if options.latest:

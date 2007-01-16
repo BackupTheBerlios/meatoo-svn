@@ -3,29 +3,29 @@
 <td width="16%">
 #if not $my_herds
     <font size=-1>
-    <a href='/meatoo/login'>Login</a><br><br>
-    <a href='/meatoo/signup'>New Account</a><br><br>
-    <a href='/meatoo/lost_passwd'>Lost password?</a>
+    <a href='/login'>Login</a><br><br>
+    <a href='/signup'>New Account</a><br><br>
+    <a href='/lost_passwd'>Lost password?</a>
     </font>
 #end if
 #if $my_herds
 <br>
-<b>My Herds</b><a href="/meatoo/add_user_herd">[+]</a><br />
+<b>My Herds</b><a href="/add_user_herd">[+]</a><br />
 #for $my_h in $my_herds
-    <a href="/meatoo/search/short/$my_h/herd">$my_h</a>
-    <a href="/meatoo/del_user_herd/$my_h"><img border=0 src="/meatoo/static/delete.png"></a>    
+    <a href="/search/short/$my_h/herd">$my_h</a>
+    <a href="/del_user_herd/$my_h"><img border=0 src="/static/delete.png"></a>    
     <br>
 #end for
 #end if
 #if $username
-<br><b>My Troves</b><a href="/meatoo/add_user_trove">[+]</a>
+<br><b>My Troves</b><a href="/add_user_trove">[+]</a>
 #end if
 #if $troves
 <br />
-<a href="/meatoo/show_all_troves">All</a><br />
+<a href="/show_all_troves">All</a><br />
 #for $t, $n in $troves.items()
-<a href="/meatoo/show_trove/$t"><span title="$n">$t</span></a>
-<a href="/meatoo/del_user_trove/$t"><img border=0 src="/meatoo/static/delete.png"></a>
+<a href="/show_trove/$t"><span title="$n">$t</span></a>
+<a href="/del_user_trove/$t"><img border=0 src="/static/delete.png"></a>
 <br />
 #end for
 #end if
@@ -41,7 +41,7 @@
     #end if    
 
     <b><a class="nav" 
-    href="http://packages.gentoo.org/search/?sstring=%5E$pkg.packageName%24" 
+    href="http://packages.gentoo.org/search/?sstring=$pkg.packageName" 
     title="Latest portage version">
     $pkg.portageCategory/$pkg.packageName-$pkg.portageVersion</a>
     [ <a class="nav" 
@@ -49,18 +49,18 @@
     title="Freshmeat Latest Release">$pkg.latestReleaseVersion</a> ]</b>
     &nbsp;&nbsp;&nbsp;
     <a class="nav" 
-    href="/meatoo/ignore/$pkg.packageName/$pkg.latestReleaseVersion" 
+    href="/ignore/$pkg.packageName/$pkg.latestReleaseVersion" 
     title="Ignore this version of this package.">
-    <img border=0 src="/meatoo/static/edit.png" alt="Ignore"></a>
-    <a class="nav" href="/meatoo/add_known/$pkg.fmName" title="Edit Portage name">
-    <img border=0 src="/meatoo/static/edit.gif"></a>
+    <img border=0 src="/static/edit.png" alt="Ignore"></a>
+    <a class="nav" href="/add_known/$pkg.fmName" title="Edit Portage name">
+    <img border=0 src="/static/edit.gif"></a>
     <a class="nav" href="$pkg.urlHomepage" title="Project Homepage">
-    <img border=0 src="/meatoo/static/home.png"></a>
+    <img border=0 src="/static/home.png"></a>
 
     <a class="nav" 
     href="http://freshmeat.net/redir/$pkg.packageName/$pkg.urlChangelog/"
     title="Upstream ChangeLog">
-    <img border=0 src="/meatoo/static/changelog.gif" alt="changelog"></a>
+    <img border=0 src="/static/changelog.gif" alt="changelog"></a>
 
     </td></tr>
 <tr><td>
@@ -83,12 +83,12 @@
         #if $pkg.latestReleaseDate == $week[$i]
             <tr><td>
             <a class="nav"
-            href="/meatoo/details/$pkg.portageCategory/$pkg.packageName"
+            href="/details/$pkg.portageCategory/$pkg.packageName"
             title="Package details">
             $pkg.portageCategory/$pkg.packageName-$pkg.portageVersion</a>
 
             <a class="nav"
-            href="/meatoo/details/$pkg.portageCategory/$pkg.packageName"
+            href="/details/$pkg.portageCategory/$pkg.packageName"
             title="Package details">
             [ $pkg.latestReleaseVersion ]</a>
             </td>

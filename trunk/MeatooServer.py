@@ -6,7 +6,6 @@ import types
 
 import cherrypy
 from cherrypy.lib import cptools
-from cherrypy.lib import httptools
 from Cheetah.Template import Template
 
 import accounts
@@ -15,7 +14,6 @@ import templates
 from sections import *
 from meatoodb import *
 from auth import *
-import subscription
 
 class exposed(type):
 
@@ -29,25 +27,26 @@ class exposed(type):
         if type(value)==types.FunctionType and not name.startswith('_'):
            value.exposed = True
 
-class MyServer(cptools.PositionalParametersAware):
+#class MyServer(cptools.PositionalParametersAware):
+class MyServer:
 
     """Server class for meatoo"""
 
     __metaclass__ = exposed
 
     def __init__(self, config, debug, verbose):
-        cptools.PositionalParametersAware.__init__(self)
+        #cptools.PositionalParametersAware.__init__(self)
+        #self.__init__(self)
         self.config = config
-        self.debug = debug
-        self.verbose = verbose
+        self.debug = True
+        self.verbose = True
         self._body_tmpl = templates.body()
         self._details_tmpl = templates.details()
         self._search_tmpl = templates.search()
         self._showtrove_tmpl = templates.showtrove()
         self._change_passwd_tmpl = templates.change_passwd()
 
-    #FIXME: Its tricky turning this on based on a config
-    #or optparser option. Any ideas?
+    #Enters the Python debugger on tracebacks.
     #def _cpOnError():
     #    """Enter pdb on tracebacks"""
     #    import pdb
@@ -60,11 +59,14 @@ class MyServer(cptools.PositionalParametersAware):
         #FIXME: Use CSS and make this look nice
         #Use compiled Cheetah template?
         #Add header arg for titlebar etc.
-        yield header_top()
-        yield "<table class='admin'><tr><td>"
-        yield content
-        yield "</td></tr></table>"
-        yield footer()
+        t = header_top()
+        t += "<table class='admin'><tr><td>"
+        t += content
+        t += "</td></tr></table>"
+        t += footer()
+        return t
+
+    plain_page._cp_config = {'response.stream': True}
 
     def error_form(self, msg, *args, **kwargs):
         """Standard error message form"""
@@ -80,7 +82,9 @@ class MyServer(cptools.PositionalParametersAware):
         #verbose=1 will show you sql id's for debugging
         #For debugging, seeing cookies etc:
         if self.verbose:
-            print cherrypy.request.headerMap
+            #print cherrypy.request.headerMap
+            #print "VERBOSE", cherrypy.request.remote.ip
+            pass
         week = utils.get_days()
         
         #FIXME: Show either pkgs needing bump or all fm pkgs
@@ -120,9 +124,7 @@ class MyServer(cptools.PositionalParametersAware):
         self._body_tmpl.my_herds = my_herds
         self._body_tmpl.packages = packages
         self._body_tmpl.verbose = verbose
-        yield header()
-        yield self._body_tmpl.respond()
-        yield footer()
+        return header() + self._body_tmpl.respond() + footer()
 
     def details(self, cat, pn):
         """Show details of individual package"""
@@ -132,66 +134,6 @@ class MyServer(cptools.PositionalParametersAware):
         self._details_tmpl.pkg = pkgs[0]
         content = self._details_tmpl.respond()
         yield self.plain_page(content)
-
-    
-    @needsLogin
-    def subscribe(self, add_herd = None, *args, **kwargs):
-        """Subscribe to email notifications of pkg bumps"""
-        username = accounts.get_logged_username()
-        subscriber = subscription.get_subscriber(username)
-        herds = ['']
-        msg = ""
-        if subscriber.count():
-            herds = subscription.get_subscriptions(username)
-        if add_herd:
-            if add_herd in herds:
-                msg = "Already subscribed to %s" % add_herd
-            else:
-                subscription.add_user_subscription(username, add_herd)
-                herds.append(add_herd)
-        template = Template('''
-            <tr><td>Add herds or maintainer's email address for notification by email when new versions appear on Freshmeat.</td></tr>
-            <tr><td><b>$msg</b></td></tr>
-
-            <tr>
-              <td>
-                <form method="get" action="/meatoo/subscribe/">
-                <input type='submit' value="Add">
-                <input type='input' name='add_herd' value=""></td>
-                </form>
-              </td></tr>
-            <tr><td>
-                <form method="get" action="/meatoo/unsubscribe/">
-                <select name=herds size=10 multiple>
-                #for $herd in $herds
-                    <option value="$herd">$herd
-                #end for
-                </select>
-                <div>
-                <input type='submit' value="Remove">
-                </div>
-                </form>
-                </td>
-            </tr>
-            ''', [locals(), globals()])
-        yield self.plain_page(template.respond())
-
-    @needsLogin
-    def unsubscribe(self, herds = None, *args, **kwargs):
-        """Remove herd from user's list of subscriptions"""
-        #If html form only returns one value its a string,
-        #otherwise its a list. 
-        #This seems retarted, report upstream to cherrypy?
-        if not herds:
-            httptools.redirect("/subscribe")
-        if type(herds) != types.ListType:
-            herds = [herds]
-        username = accounts.get_logged_username()
-        user = subscription.get_subscriber(username)[0]
-        for h in herds:
-            nuke_herd = subscription.query_subscription(h)[0]
-            user.removeSubscriptions(nuke_herd)
-        httptools.redirect("/subscribe")
 
     @needsLogin
     def ignore(self, pn, ver, *args, **kwargs):
@@ -203,14 +145,14 @@ class MyServer(cptools.PositionalParametersAware):
             yield self.error_form("Package not ignored.")
         pkg = pkgs[0]
         template = Template('''
-            <form method="get" action="/meatoo/ignore_action/">
+            <form method="get" action="/ignore_action/">
             <div>
             <b>Ignore version $pkg.latestReleaseVersion of $pkg.packageName</b>
             <br>
             <br>This will ignore this particular freshmeat release version,
             <b>not</b> the entire pacakge.</b><br><br>
             Freshmeat Release Date: $pkg.latestReleaseDate<br><br>
-            <a href="http://packages.gentoo.org/search/?sstring=%5E$pkg.packageName%24">
+            <a href="http://packages.gentoo.org/search/?sstring=$pkg.packageName">
             $pkg.portageCategory/$pkg.packageName-$pkg.portageVersion</a> [
             <a class="nav" href="http://freshmeat.net/projects/$pkg.packageName/"
             title="Freshmeat Latest Release">$pkg.latestReleaseVersion</a> ]
@@ -244,7 +186,7 @@ class MyServer(cptools.PositionalParametersAware):
         msg = "%s %s IGNORE %s-%s" % (timestamp, username, pn, ver)
         utils.admin_log_msg(msg)
         template = Template('''Freshmeat version $ver of $pn ignored.
-                                <br><br>Go <a href='/meatoo'>back</a>''',
+                                <br><br>Go <a href='/'>back</a>''',
                                 [locals(), globals()])
         content = template.respond()
         yield self.plain_page(content)
@@ -252,12 +194,11 @@ class MyServer(cptools.PositionalParametersAware):
     def signup(self):
         """New account signup form"""
         content = '''
-             <form method="get" action="/meatoo/signup_send/">
+             <form method="get" action="/signup_send/">
              <div>
               <h1 class="admin">New Account</h1>
               <table class="admin"><tr><td>
-              Currently only Gentoo developers can signup to edit Meatoo
-              entries.<br><br>
+              <h2>Mail server is down, new accounts disabled for now.</h2><br><br>
               <div>
                <label for="email">Email:</label>
                <input type="text" id="address" name="address" 
@@ -369,7 +310,7 @@ class MyServer(cptools.PositionalParametersAware):
             <tr class="alt">
             <td>$fullName </td>
             <td>
-            <form name='add_known' action="/meatoo/known_submit" method=post>
+            <form name='add_known' action="/known_submit" method=post>
             <input type='input' name='new_cat' value=""></td>
             <td><input type='input' name='new_pn' value=""></td>
             <input type='hidden' name='fmpn' value="$pn">
@@ -419,14 +360,14 @@ class MyServer(cptools.PositionalParametersAware):
             return
 
         utils.admin_log_msg(msg)
-        content = "<b>Success!</b><br><br>Go <a href='/meatoo'>home</a>"
+        content = "<b>Success!</b><br><br>Go <a href='/'>home</a>"
         yield self.plain_page(content)
         
     @needsLogin
     def add_user_herd(self, *args, **kwargs):
         """Add user's herd"""
         content = '''
-             <form method="post" action="/meatoo/process_user_herd">
+             <form method="post" action="/process_user_herd">
              <div>
               <h1 class="admin">Add a herd</h1>
               <div>
@@ -460,7 +401,7 @@ class MyServer(cptools.PositionalParametersAware):
             return
 
         utils.set_herd_session()
-        content = "<b>Success!</b><br><br>Go <a href='/meatoo'>home</a>"
+        content = "<b>Success!</b><br><br>Go <a href='/'>home</a>"
         yield self.plain_page(content)
 
     @needsLogin
@@ -475,7 +416,7 @@ class MyServer(cptools.PositionalParametersAware):
             h[0].set(herdsUser = herd)
         utils.set_herd_session()
 
-        content = "<b>Success!</b><br><br>Go <a href='/meatoo'>home</a>"
+        content = "<b>Success!</b><br><br>Go <a href='/'>home</a>"
         yield self.plain_page(content)
    
     @needsLogin
@@ -483,7 +424,7 @@ class MyServer(cptools.PositionalParametersAware):
         """Add user's trove"""
         content = '''
             <table class="admin"><tr><td>
-             <form method="post" action="/meatoo/process_user_trove">
+             <form method="post" action="/process_user_trove">
              <div><h1 class="admin">Add a trove</h1>
               <br /><p>
               Consult the Freshmeat 
@@ -517,7 +458,7 @@ class MyServer(cptools.PositionalParametersAware):
             return
 
         utils.set_troves_session()
-        content = "<b>Success!</b><br><br>Go <a href='/meatoo'>home</a>"
+        content = "<b>Success!</b><br><br>Go <a href='/'>home</a>"
         yield self.plain_page(content)
 
     @needsLogin
@@ -532,13 +473,13 @@ class MyServer(cptools.PositionalParametersAware):
             h[0].set(troves = trove)
         utils.set_troves_session()
 
-        content = "<b>Success!</b><br><br>Go <a href='/meatoo'>home</a>"
+        content = "<b>Success!</b><br><br>Go <a href='/'>home</a>"
         yield self.plain_page(content)
 
     @needsLogin
     def options(self, *args, **kwargs):
         content = """<h1 class='admin'>Options</h1>
-                     <a href='/meatoo/change_passwd'>Change password<br></a>
+                     <a href='/change_passwd'>Change password<br></a>
                      """
         yield self.plain_page(content)
 
@@ -547,20 +488,24 @@ class MyServer(cptools.PositionalParametersAware):
         """Go to front page if login succeeds."""
         utils.set_herd_session()
         utils.set_troves_session()
-        httptools.redirect("/")
+        #http.redirect("/")
+        raise cherrypy.HTTPRedirect("/")
 
     def logout(self):
         """Logout and goto / """
         cherrypy.session['userid'] = None
         cherrypy.session['herds'] = None
         cherrypy.session['troves'] = None
-        httptools.redirect("/")
+        #http.redirect("/")
+        raise cherrypy.HTTPRedirect("/")
     
     def lost_passwd(self):
         """Form for mailing lost passwd"""
         content = """
+            <h1>Mail server is down!</h1>
+            <h2>Please try back later, mail server is being worked on.</h2>
             <b>Lost password?</b>
-            <form method="get" action="/meatoo/lost_passwd_action/">
+            <form method="get" action="/lost_passwd_action/">
             <div>
             <br>Enter your Gentoo developer username: 
             <input type='input' name='username' value="">
@@ -572,7 +517,7 @@ class MyServer(cptools.PositionalParametersAware):
     def lost_passwd_action(self, username):
         """Mail lost passwd"""
         utils.mail_lost_passwd(username)
-        content = """Password mailed.<br><br>Go <a href='/meatoo'>home.</a>"""
+        content = """Password mailed.<br><br>Go <a href='/'>home.</a>"""
         yield self.plain_page(content)
 
     @needsLogin
@@ -586,12 +531,12 @@ class MyServer(cptools.PositionalParametersAware):
         password = accounts.get_user_passwd(username)
         if password != old_passwd:
             yield self.error_form('''Old password is incorrect.<br><br>
-                                     <a href='/meatoo/change_passwd'>
+                                     <a href='/change_passwd'>
                                      Try again.</a>''')
             return
         if new_passwd != confirm_passwd:
             yield self.error_form('''New passwords don't match.<br><br>
-                                     <a href='/meatoo/change_passwd'>
+                                     <a href='/change_passwd'>
                                      Try again.</a>''')
             return
         if accounts.change_passwd(username, new_passwd):

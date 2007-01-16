@@ -18,6 +18,7 @@ import os
 import ConfigParser
 
 from sqlobject import *
+from sqlobject.sqlite.sqliteconnection import SQLiteConnection
 
 
 CONFIG = "./meatoo.conf"
@@ -31,12 +32,17 @@ HOST = config.get("sqlobject", "host")
 USERNAME = config.get("sqlobject", "username")
 PASSWORD = config.get("sqlobject", "password")
 
-if DATABASE == "sqlite":
-    conn = connectionForURI("sqlite:///%s" % FILENAME)
-else:
-    conn = connectionForURI("mysql://%s:%s@%s/%s" % \
-                            (USERNAME, PASSWORD, HOST, DB_NAME))
+#if DATABASE == "sqlite":
+#    #conn = connectionForURI("sqlite:///%s" % FILENAME)
+#    conn = dbconnection.ConnectionHub()
+#else:
+#    conn = connectionForURI("mysql://%s:%s@%s/%s" % \
+#                            (USERNAME, PASSWORD, HOST, DB_NAME))
 
+conn = dbconnection.ConnectionHub()
+
+def connect(threadIndex):
+    conn.threadConnection = SQLiteConnection('sqlitedb')
 
 class Packages(SQLObject):
 
@@ -44,19 +50,19 @@ class Packages(SQLObject):
 
     _connection = conn
 
-    _columns = [StringCol('portageCategory', length=64, notNull=1),
-                StringCol('packageName', length=128, notNull=1),
-                StringCol('portageDesc', length=254, notNull=1),
-                StringCol('portageVersion', length=64, notNull=1),
-                StringCol('fmName', length=128, notNull=1),
-                StringCol('maintainerName', length=128, notNull=1),
-                StringCol('descShort', length=254, notNull=1),
-                StringCol('latestReleaseVersion', length=64, notNull=1),
-                StringCol('latestReleaseDate', length=128, notNull=1),
-                StringCol('urlHomepage', length=128, notNull=1),
-                StringCol('urlChangelog', length=128, notNull=0),
-                BoolCol('fmNewer',notNull=1)
-               ]
+    portageCategory = StringCol(length=64, notNull=1)
+    packageName = StringCol(length=128, notNull=1)
+    portageDesc = StringCol(length=254, notNull=1)
+    portageVersion = StringCol(length=64, notNull=1)
+    fmName = StringCol(length=128, notNull=1)
+    maintainerName = StringCol(length=128, notNull=1)
+    descShort = StringCol(length=254, notNull=1)
+    latestReleaseVersion = StringCol(length=64, notNull=1)
+    latestReleaseDate = StringCol(length=128, notNull=1)
+    urlHomepage = StringCol(length=128, notNull=1)
+    urlChangelog = StringCol(length=128, notNull=0)
+    fmNewer = BoolCol(notNull=1)
+               
     
 class Ignores(SQLObject):
 
@@ -67,31 +73,28 @@ class Ignores(SQLObject):
 
     _connection = conn
 
-    _columns = [StringCol('packageName', length=64, notNull=1),
-                StringCol('latestReleaseVersion', length=64, notNull=1)
-               ]
+    packageName = StringCol(length=64, notNull=1)
+    latestReleaseVersion = StringCol(length=64, notNull=1)
 
 class KnownGood(SQLObject):
 
     """Contains user-submitted mappings of fm names to Gentoo package names"""
 
     _connection = conn
-    _columns = [StringCol('portageCategory', length=64, notNull=1),
-                StringCol('packageName', length=128, notNull=1),
-                StringCol('fmName', length=254, notNull=1)
-               ]
+    portageCategory = StringCol(length=64, notNull=1)
+    packageName = StringCol(length=128, notNull=1)
+    fmName = StringCol(length=254, notNull=1)
 
 class Users(SQLObject):
 
     """Contains usernames and passwords"""
 
     _connection = conn
-    _columns = [StringCol('user', length=32, notNull=1),
-                StringCol('password', length=32, notNull=1),
-                StringCol('herdsAuto', length=254, notNull=1),
-                StringCol('herdsUser', length=254, notNull=0),
-                StringCol('troves', length=254, notNull=0)
-               ]
+    user = StringCol(length=32, notNull=1)
+    password = StringCol(length=32, notNull=1)
+    herdsAuto = StringCol(length=254, notNull=1)
+    herdsUser = StringCol(length=254, notNull=0)
+    troves = StringCol(length=254, notNull=0)
     
 class Stats(SQLObject):
 
@@ -104,65 +107,39 @@ class Stats(SQLObject):
         weekly_need_bump - Number of pkgs needing a bump this week"""
 
     _connection = conn
-    _columns = [IntCol('fm_rdf_size', notNull=0),
-                IntCol('pkgs_ttl', notNull=0),
-                IntCol('matches_ttl', notNull=0),
-                IntCol('need_bump_ttl', notNull=0),
-                IntCol('weekly_bumped', notNull=0),
-                IntCol('weekly_need_bumps', notNull=0)
-               ]
+    fm_rdf_size = IntCol(notNull=0)
+    pkgs_ttl = IntCol(notNull=0)
+    matches_ttl = IntCol(notNull=0)
+    need_bump_ttl = IntCol(notNull=0)
+    weekly_bumped = IntCol(notNull=0)
+    weekly_need_bumps = IntCol(notNull=0)
 
 class Allfm(SQLObject):
-
     """Contains all FM releases for the past week"""
-
     _connection = conn
 
-    _columns = [StringCol('fmName', length=128, notNull=1),
-                StringCol('descShort', length=254, notNull=1),
-                StringCol('latestReleaseVersion', length=64, notNull=1),
-                StringCol('latestReleaseDate', length=128, notNull=1),
-                StringCol('urlHomepage', length=128, notNull=1),
-                StringCol('urlChangelog', length=128, notNull=1),
-                StringCol('troveId', length=128, notNull=1),
-                BoolCol('inPortage',notNull=1)
-               ]
+    fmName = StringCol(length=128, notNull=1)
+    descShort = StringCol(length=254, notNull=1)
+    latestReleaseVersion = StringCol(length=64, notNull=1)
+    latestReleaseDate = StringCol(length=128, notNull=1)
+    urlHomepage = StringCol(length=128, notNull=1)
+    urlChangelog = StringCol(length=128, notNull=1)
+    troveId = StringCol(length=128, notNull=1)
+    inPortage = BoolCol(notNull=1)
 
 class Troves(SQLObject):
-
     """Contains all FM troves"""
-
     _connection = conn
 
-    _columns = [StringCol('fId', length=32, notNull=1),
-                StringCol('name', length=254, notNull=1)
-               ]
+    fId = StringCol(length=32, notNull=1)
+    name = StringCol(length=254, notNull=1)
 
-
-class Subscribers(SQLObject):
-    """List of users joined with table of herd subscriptions"""
-
-    _connection = conn
-
-    username = StringCol(alternateID=True, length=32)
-    herds = RelatedJoin('Subscriptions')
-
-class Subscriptions(SQLObject):
-    """List of herds joined with table of users subscribed"""
-
-    _connection = conn
-
-    herd = StringCol(alternateID=True, length=64)
-    users = RelatedJoin('Subscribers')
-
-
-
-Packages.createTable(ifNotExists = True)
-Ignores.createTable(ifNotExists = True)
-KnownGood.createTable(ifNotExists = True)
-Users.createTable(ifNotExists = True)
-Stats.createTable(ifNotExists = True)
-Allfm.createTable(ifNotExists = True)
-Troves.createTable(ifNotExists = True)
-Subscriptions.createTable(ifNotExists = True)
-Subscribers.createTable(ifNotExists = True)
+if __name__ == "__main__":
+    connection_thread = connect(0)
+    Packages.createTable(ifNotExists = True)
+    Ignores.createTable(ifNotExists = True)
+    KnownGood.createTable(ifNotExists = True)
+    Users.createTable(ifNotExists = True)
+    Stats.createTable(ifNotExists = True)
+    Allfm.createTable(ifNotExists = True)
+    Troves.createTable(ifNotExists = True)

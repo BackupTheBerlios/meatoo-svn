@@ -16,6 +16,7 @@ Contributor: Renat Lumpau
 
 """
 
+from time import localtime
 import optparse
 import sys
 import os
@@ -59,10 +60,17 @@ def download_troves():
     rdf_buff = fm.read()
     file_out = open(TROVES_FILE, "w").write(rdf_buff)
 
+def get_last_four_years():
+    """Returns tuple of the last four years"""
+    current_year = localtime()[0]
+    return (current_year, current_year - 1, current_year -2, current_year -3)
+
 def parse_rdf(filename):
     """Parse given fm rdf"""
     f = {}
     trove = ""
+    #Number of years to check back in time.
+    years = get_last_four_years()
     for event, elem in iterparse(open(filename, "r")):
         if elem.tag == "project_id":
             project_id = int(elem.text)
@@ -89,7 +97,8 @@ def parse_rdf(filename):
             t = ""
             for trove in elem[:]:
                 t = "%s %s" % (t, trove.text)
-            if latest_release_date[0:4] == "2005" or latest_release_date[0:4] == "2004":
+            #If it hasn't been updated in four years, screw it.
+            if  latest_release_date[0:4] in years:
                     f[projectname_short] = {'id': project_id,
                                 'descShort': desc_short,
                                 'fmName': projectname_short,
@@ -141,11 +150,19 @@ if __name__ == '__main__':
                             help="Download freshmeat troves file.")
     optParser.add_option( "-P", action="store_true", dest="trparse", default=False,
                             help="Parse and pickle freshmeat troves file.")
+    optParser.add_option( "-A", action="store_true", dest="all", default=False,
+                            help="Download freshmeat RDF file.")
     options, remainingArgs = optParser.parse_args()
     if len(sys.argv) == 1:
         optParser.print_help()
         sys.exit()
 
+    if options.all:
+        options.dload = True
+        options.parse = True
+        options.tree = True
+        options.trdload = True
+        options.trparse = True
     if options.dload:
         download_fm()
 
